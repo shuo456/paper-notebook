@@ -696,7 +696,8 @@ body::after {
   gap: 12px;
 }
 
-.journal-badge {
+.journal-badge,
+.venue-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -731,6 +732,55 @@ body::after {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-decoration: none;
+}
+
+.card-title:focus-visible,
+.filter-chip:focus-visible,
+.tag:focus-visible,
+.card-read-toggle:focus-visible,
+.active-tag button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.active-tag,
+.load-error {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.active-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.active-tag[hidden],
+.load-error[hidden] {
+  display: none;
+}
+
+.active-tag button,
+.card-read-toggle {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.load-error {
+  text-align: center;
+}
+
+.load-error h2 {
+  margin-bottom: 8px;
 }
 
 .card-authors {
@@ -1364,6 +1414,31 @@ body::after {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+  .papers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .paper-card {
+    padding: 18px;
+  }
+
+  .controls-row2,
+  .card-footer {
+    align-items: stretch;
+  }
+
+  .card-footer {
+    flex-direction: column;
+  }
+
+  .card-footer-right {
+    justify-content: flex-start;
+  }
 }
 
 /* NotebookLM section card on paper detail page */

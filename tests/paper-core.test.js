@@ -7,6 +7,7 @@ import {
   isSafeHttpsUrl,
   filterPapers,
   sortPapers,
+  selectVisiblePapers,
 } from '../docs/js/paper-core.js';
 
 test('normalizePaper converts legacy repository fields to the canonical model', () => {
@@ -75,4 +76,18 @@ test('sortPapers supports oldest and rating modes without mutating input', () =>
   assert.deepEqual(sortPapers(papers, { mode: 'oldest', readIds: new Set() }).map((paper) => paper.id), ['a', 'c', 'b']);
   assert.deepEqual(sortPapers(papers, { mode: 'rating', readIds: new Set() }).map((paper) => paper.id), ['a', 'b', 'c']);
   assert.deepEqual(papers.map((paper) => paper.id), original);
+});
+
+test('selectVisiblePapers applies filters sorting and display limit in one pipeline', () => {
+  const result = selectVisiblePapers(papers, {
+    query: '',
+    venue: 'all',
+    tag: null,
+    readMode: 'all',
+    deepNotesOnly: false,
+    sortMode: 'newest',
+    limit: 1,
+    readIds: new Set(),
+  });
+  assert.deepEqual(result.map((paper) => paper.id), ['b']);
 });

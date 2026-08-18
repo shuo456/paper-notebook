@@ -94,3 +94,19 @@ export function sortPapers(papers, options = {}) {
     return effectiveDate(right) - effectiveDate(left);
   });
 }
+
+export function selectVisiblePapers(papers, state) {
+  const filtered = filterPapers(papers, {
+    query: state.query,
+    venue: state.venue,
+    tag: state.tag,
+    readMode: state.readMode,
+    deepNotesOnly: state.deepNotesOnly,
+    readIds: state.readIds,
+  });
+  const sorted = sortPapers(filtered, {
+    mode: state.sortMode,
+    readIds: state.readIds,
+  });
+  return state.limit > 0 ? sorted.slice(0, state.limit) : sorted;
+}
