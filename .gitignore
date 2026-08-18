@@ -12,5 +12,10 @@
 # Logs
 *.log
 
+# Python and local data backups
+__pycache__/
+*.py[cod]
+*.json.bak
+
 # Local Git worktrees
 .worktrees/

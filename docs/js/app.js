@@ -46,7 +46,7 @@ async function loadPapers() {
   elements['load-error'].hidden = true;
   showLoading();
   try {
-    const response = await fetch(new URL('./papers.json', import.meta.url));
+    const response = await fetch(new URL('./papers.json', import.meta.url), { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const value = await response.json();
     if (!Array.isArray(value)) throw new TypeError('papers.json 顶层必须是数组');

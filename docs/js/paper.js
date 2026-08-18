@@ -116,7 +116,7 @@ async function start() {
     return;
   }
   try {
-    const response = await fetch(new URL('./papers.json', import.meta.url));
+    const response = await fetch(new URL('./papers.json', import.meta.url), { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const paper = normalizePapers(await response.json()).find((item) => item.id === id);
     if (!paper) showError(`未找到 ID 为“${id}”的论文。`);
