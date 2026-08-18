@@ -1,0 +1,11 @@
+{
+  "name": "shuo-xu-paper-notebook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:js": "node --test --test-isolation=none tests/paper-core.test.js",
+    "test:py": "python -m unittest discover -s tests -p test_*.py -v",
+    "test": "npm run test:js && npm run test:py",
+    "serve": "python -m http.server 8000 --directory docs"
+  }
+}
