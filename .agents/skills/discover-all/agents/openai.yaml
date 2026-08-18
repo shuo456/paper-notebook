@@ -1,0 +1,4 @@
+interface:
+  display_name: "发现全部论文"
+  short_description: "Combine current arXiv journal and conference discovery"
+  default_prompt: "Use $discover-all to search every configured paper source."

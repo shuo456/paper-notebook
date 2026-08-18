@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布论文笔记库"
+  short_description: "Verify and publish reviewed notebook changes to GitHub"
+  default_prompt: "Use $publish-notebook to verify and publish my reviewed notebook changes."

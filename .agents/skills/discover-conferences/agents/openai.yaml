@@ -1,0 +1,4 @@
+interface:
+  display_name: "发现会议论文"
+  short_description: "Track current robotics and machine learning proceedings"
+  default_prompt: "Use $discover-conferences to find papers from the latest conference cycle."

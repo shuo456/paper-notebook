@@ -22,18 +22,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="为论文关联 NotebookLM 深度笔记")
     parser.add_argument("--papers-json", required=True, type=Path)
     parser.add_argument("--paper-id", required=True)
-    parser.add_argument("--notebooklm-url", required=True)
-    parser.add_argument("--notebooklm-notes", required=True, type=Path)
+    parser.add_argument("--notebooklm-url", dest="notebooklmUrl", required=True)
+    parser.add_argument("--notebooklm-notes", dest="notebooklmNotes", required=True, type=Path)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true", help="覆盖已有 NotebookLM 数据")
     args = parser.parse_args()
 
-    if not is_https_url(args.notebooklm_url):
+    if not is_https_url(args.notebooklmUrl):
         print("错误：NotebookLM URL 必须是 HTTPS 地址。", file=sys.stderr)
         return 1
     try:
         papers = load_json_array(args.papers_json)
-        notes = args.notebooklm_notes.read_text(encoding="utf-8").strip()
+        notes = args.notebooklmNotes.read_text(encoding="utf-8").strip()
     except (OSError, ValueError, ValidationError) as error:
         print(f"错误：{error}", file=sys.stderr)
         return 1
@@ -51,7 +51,7 @@ def main() -> int:
 
     updated = [dict(paper) for paper in papers]
     updated_target = next(paper for paper in updated if paper.get("id") == args.paper_id)
-    updated_target["notebooklmUrl"] = args.notebooklm_url
+    updated_target["notebooklmUrl"] = args.notebooklmUrl
     updated_target["notebooklmNotes"] = notes
     updated_target["updatedDate"] = date.today().isoformat()
     try:

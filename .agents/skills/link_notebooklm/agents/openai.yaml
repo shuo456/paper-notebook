@@ -1,0 +1,4 @@
+interface:
+  display_name: "关联 NotebookLM 笔记"
+  short_description: "审核并关联 NotebookLM 深度笔记到指定论文详情页"
+  default_prompt: "Use $link-notebooklm to review and link NotebookLM notes to a paper."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "发现期刊论文"
+  short_description: "Track current control and robotics journal papers"
+  default_prompt: "Use $discover-journals to find current papers in my tracked journals."
