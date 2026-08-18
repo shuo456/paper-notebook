@@ -47,8 +47,8 @@
 - No repository files change.
 
 **Interfaces:**
-- Consumes: authenticated GitHub account `shuo-xu25` and the existing local clone.
-- Produces: `upstream` pointing to `zhaijj/paper-notebook` and `origin` pointing to `shuo-xu25/paper-notebook`.
+- Consumes: authenticated GitHub account `shuo456` and the existing local clone.
+- Produces: `upstream` pointing to `zhaijj/paper-notebook` and `origin` pointing to `shuo456/paper-notebook`.
 
 - [ ] **Step 1: Restore GitHub authentication**
 
@@ -58,7 +58,7 @@ Run interactively:
 gh auth login --hostname github.com --web
 ```
 
-Expected: the browser authorization completes for `shuo-xu25`; no token is printed or copied into the repository.
+Expected: the browser authorization completes for `shuo456`; no token is printed or copied into the repository.
 
 - [ ] **Step 2: Verify the authenticated identity**
 
@@ -69,7 +69,7 @@ gh auth status
 gh api user --jq .login
 ```
 
-Expected: authentication is valid and the second command prints `shuo-xu25`.
+Expected: authentication is valid and the second command prints `shuo456`.
 
 - [ ] **Step 3: Create the GitHub fork without cloning again**
 
@@ -79,7 +79,7 @@ Run:
 gh repo fork zhaijj/paper-notebook --clone=false
 ```
 
-Expected: GitHub reports `shuo-xu25/paper-notebook`; if it already exists, verify it is a fork of `zhaijj/paper-notebook` before continuing.
+Expected: GitHub reports `shuo456/paper-notebook`; if it already exists, verify it is a fork of `zhaijj/paper-notebook` before continuing.
 
 - [ ] **Step 4: Correct the local remotes**
 
@@ -87,11 +87,11 @@ Run:
 
 ```powershell
 git remote rename origin upstream
-git remote add origin https://github.com/shuo-xu25/paper-notebook.git
+git remote add origin https://github.com/shuo456/paper-notebook.git
 git remote -v
 ```
 
-Expected: fetch/push URLs for `origin` use `shuo-xu25`, while `upstream` uses `zhaijj`. Do not push in this task.
+Expected: fetch/push URLs for `origin` use `shuo456`, while `upstream` uses `zhaijj`. Do not push in this task.
 
 - [ ] **Step 5: Record the verified baseline**
 
@@ -198,7 +198,7 @@ Create `docs/js/config.js`:
 ```js
 export const SITE_CONFIG = Object.freeze({
   owner: 'Shuo Xu',
-  githubOwner: 'shuo-xu25',
+  githubOwner: 'shuo456',
   repository: 'paper-notebook',
   title: 'Shuo Xu 的论文笔记',
   subtitle: '安全控制 · 机器人学习 · 强化学习',
@@ -846,7 +846,7 @@ Remove the five paths listed above. Search `docs/index.html`, `docs/paper.html`,
 
 Document these exact sections:
 
-1. 项目简介与在线地址 `https://shuo-xu25.github.io/paper-notebook/`;
+1. 项目简介与在线地址 `https://shuo456.github.io/paper-notebook/`;
 2. 本地运行: `npm run serve`, then open `http://localhost:8000/`;
 3. 测试: `npm test`;
 4. `papers.json` canonical field table and three-level deduplication;
@@ -927,7 +927,7 @@ git commit -m "docs: finalize personal paper notebook setup"
 
 **Interfaces:**
 - Consumes: a clean, fully tested local branch and explicit user publication confirmation.
-- Produces: pushed `shuo-xu25/paper-notebook` and an enabled GitHub Pages site.
+- Produces: pushed `shuo456/paper-notebook` and an enabled GitHub Pages site.
 
 - [ ] **Step 1: Re-run release verification immediately before publication**
 
@@ -945,7 +945,7 @@ Expected: all tests PASS, the working tree is clean, and the log shows the desig
 
 Show the user:
 
-- target remote `https://github.com/shuo-xu25/paper-notebook`;
+- target remote `https://github.com/shuo456/paper-notebook`;
 - commits in `upstream/main..HEAD`;
 - exact command `git push -u origin main`;
 - note that the remote website will become public.
@@ -967,19 +967,19 @@ Expected: `origin/main` advances to the verified local `main`.
 First inspect current state:
 
 ```powershell
-gh api repos/shuo-xu25/paper-notebook/pages
+gh api repos/shuo456/paper-notebook/pages
 ```
 
 If Pages is not configured, run:
 
 ```powershell
-gh api -X POST repos/shuo-xu25/paper-notebook/pages -F "source[branch]=main" -F "source[path]=/docs"
+gh api -X POST repos/shuo456/paper-notebook/pages -F "source[branch]=main" -F "source[path]=/docs"
 ```
 
 If Pages exists with a different source, run:
 
 ```powershell
-gh api -X PUT repos/shuo-xu25/paper-notebook/pages -F "source[branch]=main" -F "source[path]=/docs"
+gh api -X PUT repos/shuo456/paper-notebook/pages -F "source[branch]=main" -F "source[path]=/docs"
 ```
 
 - [ ] **Step 5: Verify the deployed site**
@@ -987,8 +987,8 @@ gh api -X PUT repos/shuo-xu25/paper-notebook/pages -F "source[branch]=main" -F "
 Check:
 
 ```text
-https://shuo-xu25.github.io/paper-notebook/
-https://shuo-xu25.github.io/paper-notebook/paper.html?id=ames2017cbf
+https://shuo456.github.io/paper-notebook/
+https://shuo456.github.io/paper-notebook/paper.html?id=ames2017cbf
 ```
 
 Expected: both return successfully, assets load under `/paper-notebook/`, list/detail navigation works, and the deployed browser console is clean.

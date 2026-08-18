@@ -2,7 +2,7 @@
 
 ## 目标
 
-将 `zhaijj/paper-notebook` Fork 为 `shuo-xu25/paper-notebook`，保留纯静态 GitHub Pages 架构和 `papers.json` 数据层，建立以中文为主、面向控制与机器人研究的个人论文库。第一阶段必须在不配置任何 MCP 的情况下可在本地运行；第二阶段再接入 Firecrawl、NotebookLM 和 GitHub 发布自动化。
+将 `zhaijj/paper-notebook` Fork 为 `shuo456/paper-notebook`，保留纯静态 GitHub Pages 架构和 `papers.json` 数据层，建立以中文为主、面向控制与机器人研究的个人论文库。第一阶段必须在不配置任何 MCP 的情况下可在本地运行；第二阶段再接入 Firecrawl、NotebookLM 和 GitHub 发布自动化。
 
 ## 范围
 
@@ -39,7 +39,7 @@
 
 ## 仓库与部署结构
 
-Fork 目标为 `shuo-xu25/paper-notebook`，GitHub Pages 从 `main` 分支的 `/docs` 目录发布。
+Fork 目标为 `shuo456/paper-notebook`，GitHub Pages 从 `main` 分支的 `/docs` 目录发布。
 
 ```text
 docs/
@@ -181,7 +181,7 @@ tests/
 
 ### GitHub
 
-使用 GitHub 账号 `shuo-xu25` 创建 Fork、推送和配置 Pages。当前 GitHub CLI 凭证失效，实施时需要用户重新完成 GitHub 登录。GitHub 写操作在登录恢复且用户确认后执行。
+使用 GitHub 账号 `shuo456` 创建 Fork、推送和配置 Pages。Fork 已创建并验证其父仓库为 `zhaijj/paper-notebook`；发布仍需在测试通过且用户确认后执行。
 
 ### Firecrawl
 
@@ -233,7 +233,7 @@ NotebookLM 关联需要用户的 Google/NotebookLM 登录授权和可用的 Note
 
 ## 完成标准
 
-1. `shuo-xu25/paper-notebook` Fork 创建成功。
+1. `shuo456/paper-notebook` Fork 创建成功。
 2. 原作者品牌、论文数据、博客和植物基因组 Skills 已移除。
 3. 中文静态站在本地运行，列表、筛选、阅读状态和详情功能通过验证。
 4. `papers.json` 只保留 2–3 篇结构完整的演示论文。
