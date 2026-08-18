@@ -8,6 +8,7 @@ import {
   filterPapers,
   sortPapers,
   selectVisiblePapers,
+  renderSafeMarkdown,
 } from '../docs/js/paper-core.js';
 
 test('normalizePaper converts legacy repository fields to the canonical model', () => {
@@ -90,4 +91,19 @@ test('selectVisiblePapers applies filters sorting and display limit in one pipel
     readIds: new Set(),
   });
   assert.deepEqual(result.map((paper) => paper.id), ['b']);
+});
+
+test('renderSafeMarkdown supports useful note formatting and HTTPS links', () => {
+  const html = renderSafeMarkdown('## 结论\n\n**安全性**优先。\n\n- 使用 CBF\n- 验证约束\n\n[论文](https://example.com/paper)');
+  assert.match(html, /<h2>结论<\/h2>/);
+  assert.match(html, /<strong>安全性<\/strong>/);
+  assert.match(html, /<ul><li>使用 CBF<\/li><li>验证约束<\/li><\/ul>/);
+  assert.match(html, /href="https:\/\/example\.com\/paper"/);
+});
+
+test('renderSafeMarkdown escapes HTML and refuses unsafe link schemes', () => {
+  const html = renderSafeMarkdown('<img src=x onerror=alert(1)> [危险](javascript:alert(1))');
+  assert.doesNotMatch(html, /<img|href="javascript:/i);
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(html, /危险/);
 });

@@ -110,3 +110,66 @@ export function selectVisiblePapers(papers, state) {
   });
   return state.limit > 0 ? sorted.slice(0, state.limit) : sorted;
 }
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function renderInlineMarkdown(value = '') {
+  return escapeHtml(value)
+    .replace(/\[([^\]]+)]\(([^)\s]+)\)/g, (match, label, url) => (
+      isSafeHttpsUrl(url)
+        ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
+        : label
+    ))
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+export function renderSafeMarkdown(markdown = '') {
+  const output = [];
+  let paragraph = [];
+  let list = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    output.push(`<p>${paragraph.map(renderInlineMarkdown).join('<br>')}</p>`);
+    paragraph = [];
+  };
+  const flushList = () => {
+    if (!list.length) return;
+    output.push(`<ul>${list.join('')}</ul>`);
+    list = [];
+  };
+
+  for (const line of String(markdown).replaceAll('\r\n', '\n').split('\n')) {
+    const heading = line.match(/^(#{2,3})\s+(.+)$/);
+    const item = line.match(/^- (?:\[( |x|X)]\s+)?(.+)$/);
+
+    if (heading) {
+      flushParagraph();
+      flushList();
+      const level = heading[1].length;
+      output.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+    } else if (item) {
+      flushParagraph();
+      const taskClass = item[1] === undefined ? '' : ` class="task-item${item[1].toLowerCase() === 'x' ? ' done' : ''}"`;
+      list.push(`<li${taskClass}>${renderInlineMarkdown(item[2])}</li>`);
+    } else if (!line.trim()) {
+      flushParagraph();
+      flushList();
+    } else {
+      flushList();
+      paragraph.push(line);
+    }
+  }
+
+  flushParagraph();
+  flushList();
+  return output.join('');
+}

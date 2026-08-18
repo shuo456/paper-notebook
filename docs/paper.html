@@ -1,191 +1,78 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Paper Detail | Jingjing's Paper Notebook</title>
-    <meta name="description" content="Paper notes and abstract." />
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>" />
-    <!-- Apply saved theme immediately to prevent flash -->
-    <script>
-        (function () { var t = localStorage.getItem('pn-theme') || 'light'; document.documentElement.setAttribute('data-theme', t); })();
-    </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>论文详情 · Shuo Xu 的论文笔记</title>
+  <meta name="description" content="论文摘要、个人笔记与深度阅读记录。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+  <script>(function(){var t=localStorage.getItem('pn-theme')||'light';document.documentElement.setAttribute('data-theme',t)})();</script>
 </head>
-
 <body>
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <a href="index.html" class="logo" aria-label="返回论文列表">
+        <span class="logo-icon" aria-hidden="true">📚</span>
+        <span><span class="logo-text" id="site-title">论文笔记</span><span class="logo-sub" id="site-owner">Shuo Xu</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">论文库</a></li>
+        <li><a id="github-link" href="https://github.com/shuo456/paper-notebook" target="_blank" rel="noopener">GitHub</a></li>
+        <li><button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换深色模式"><span class="toggle-icon">🌙</span><span class="toggle-label">深色</span></button></li>
+      </ul>
+    </div>
+  </nav>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <div class="container navbar-inner">
-            <a href="index.html" class="logo">
-                <div class="logo-icon">📚</div>
-                <div>
-                    <span class="logo-text">Paper Notebook</span>
-                    <span class="logo-sub">Jingjing Zhai</span>
-                </div>
-            </a>
-            <ul class="nav-links">
-                <li><a href="index.html">← All Papers</a></li>
-                <li><a href="blog.html">Blog</a></li>
-                <li><a href="https://github.com/zhaijj/paper-notebook" target="_blank">GitHub</a></li>
-                <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">
-                        <span class="toggle-icon">🌙</span>
-                        <span class="toggle-label">Dark</span>
-                    </button>
-                </li>
-            </ul>
+  <main id="detail-main">
+    <header class="paper-hero">
+      <div class="container">
+        <a href="index.html" class="back-link">← 返回全部论文</a>
+        <div id="paper-color-bar" style="height:3px;border-radius:2px;margin:24px 0 20px;max-width:200px;background:linear-gradient(90deg,var(--accent),transparent)"></div>
+        <div class="paper-meta-row">
+          <span id="paper-venue" class="venue-badge"></span>
+          <span id="paper-year" class="card-year"></span>
+          <span id="paper-stars" class="star-rating"></span>
         </div>
-    </nav>
-
-    <main>
-
-        <!-- PAPER HERO -->
-        <div class="paper-hero">
-            <div class="container">
-
-                <a href="index.html" class="back-link">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path d="m15 18-6-6 6-6" />
-                    </svg>
-                    Back to all papers
-                </a>
-
-                <div id="paper-color-bar" style="height:3px; border-radius:2px; margin:24px 0 20px; max-width:200px;">
-                </div>
-
-                <div class="paper-meta-row">
-                    <span id="paper-journal-badge"></span>
-                    <span id="paper-year"></span>
-                    <div class="star-rating" id="paper-stars"></div>
-                </div>
-
-                <h1 class="paper-title" id="paper-title">Loading…</h1>
-                <p class="paper-authors" id="paper-authors"></p>
-
-                <div class="paper-links">
-                    <a id="btn-doi" href="#" target="_blank" class="btn btn-primary">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                        </svg>
-                        Open DOI
-                    </a>
-                    <button id="btn-read-toggle" class="btn btn-outline">
-                        <!-- Filled in by paper.js -->
-                    </button>
-                    <a href="index.html" class="btn btn-outline">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="m15 18-6-6 6-6" />
-                        </svg>
-                        All Papers
-                    </a>
-                </div>
-
-            </div>
+        <h1 class="paper-title" id="paper-title">正在加载…</h1>
+        <p class="paper-authors" id="paper-authors"></p>
+        <div class="paper-links">
+          <a id="btn-source" class="btn btn-primary" target="_blank" rel="noopener noreferrer" hidden>打开论文 ↗</a>
+          <a id="btn-pdf" class="btn btn-outline" target="_blank" rel="noopener noreferrer" hidden>PDF ↗</a>
+          <a id="btn-doi" class="btn btn-outline" target="_blank" rel="noopener noreferrer" hidden>DOI ↗</a>
+          <button id="btn-read-toggle" class="btn btn-outline" type="button">标为已读</button>
         </div>
+      </div>
+    </header>
 
-        <!-- PAPER CONTENT -->
-        <div class="container">
-            <div class="paper-content">
-
-                <!-- MAIN COLUMN -->
-                <div class="content-main">
-                    <div class="section-card">
-                        <div class="section-label">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14 2 14 8 20 8" />
-                            </svg>
-                            Abstract
-                        </div>
-                        <p class="abstract-text" id="paper-abstract"></p>
-                    </div>
-
-                    <div class="section-card">
-                        <div class="section-label">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2.5">
-                                <path d="M12 20h9" />
-                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                            </svg>
-                            My Notes
-                        </div>
-                        <div class="notes-content" id="paper-notes"></div>
-                    </div>
-
-                    <!-- NotebookLM Deep Notes — hidden if no notebooklm_notes -->
-                    <div class="section-card section-nlm" id="section-nlm" style="display:none;">
-                        <div class="section-label">
-                            <span>📓</span>
-                            NotebookLM Deep Notes
-                            <a id="nlm-open-link" href="#" target="_blank" rel="noopener" class="nlm-link-out">
-                                Open in NotebookLM ↗
-                            </a>
-                        </div>
-                        <div class="notes-content" id="paper-nlm-notes"></div>
-                    </div>
-
-                    <!-- Comments Section -->
-                    <div class="section-card" id="section-comments" style="margin-top: 2rem;">
-                        <div class="section-label">
-                            💬 Comments & Discussion
-                        </div>
-                        <div id="utterances-container">
-                            <!-- Script injected by paper.js so theme can be matched dynamically -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SIDEBAR -->
-                <div class="content-side">
-                    <div class="section-card">
-                        <div class="section-label">Info</div>
-                        <div class="info-row"><span class="info-key">Journal</span><span class="info-val"
-                                id="info-journal"></span></div>
-                        <div class="info-row"><span class="info-key">Year</span><span class="info-val"
-                                id="info-year"></span></div>
-                        <div class="info-row"><span class="info-key">Rating</span><span class="info-val"
-                                id="info-rating"></span></div>
-                        <div class="info-row"><span class="info-key">DOI</span><span class="info-val"
-                                id="info-doi"></span></div>
-                        <div class="info-row"><span class="info-key">Added</span><span class="info-val"
-                                id="info-added"></span></div>
-                    </div>
-
-                    <div class="section-card">
-                        <div class="section-label">Tags</div>
-                        <div class="tags-cloud" id="paper-tags-cloud"></div>
-                    </div>
-                </div>
-
-            </div>
+    <div class="container">
+      <div class="paper-content">
+        <div class="content-main">
+          <section class="section-card"><div class="section-label">摘要</div><p class="abstract-text" id="paper-abstract"></p></section>
+          <section class="section-card"><div class="section-label">我的笔记</div><div class="notes-content" id="paper-notes"></div></section>
+          <section class="section-card section-nlm" id="section-nlm" hidden>
+            <div class="section-label">📓 NotebookLM 深度笔记 <a id="nlm-open-link" class="nlm-link-out" target="_blank" rel="noopener noreferrer" hidden>在 NotebookLM 中打开 ↗</a></div>
+            <div class="notes-content" id="paper-nlm-notes"></div>
+          </section>
         </div>
+        <aside class="content-side">
+          <section class="section-card">
+            <div class="section-label">论文信息</div>
+            <div class="info-row"><span class="info-key">出处</span><span class="info-val" id="info-venue"></span></div>
+            <div class="info-row"><span class="info-key">年份</span><span class="info-val" id="info-year"></span></div>
+            <div class="info-row"><span class="info-key">评分</span><span class="info-val" id="info-rating"></span></div>
+            <div class="info-row"><span class="info-key">DOI</span><span class="info-val" id="info-doi"></span></div>
+            <div class="info-row"><span class="info-key">收录日期</span><span class="info-val" id="info-added"></span></div>
+            <div class="info-row"><span class="info-key">来源</span><span class="info-val" id="info-source"></span></div>
+          </section>
+          <section class="section-card"><div class="section-label">标签</div><div class="tags-cloud" id="paper-tags"></div></section>
+        </aside>
+      </div>
+    </div>
+  </main>
 
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <p>
-                Maintained by <a href="https://github.com/zhaijj" target="_blank">Jingjing Zhai</a> ·
-                Built with 💚 and plain HTML ·
-                <a href="https://github.com/zhaijj/paper-notebook" target="_blank">View on GitHub</a>
-            </p>
-        </div>
-    </footer>
-
-    <script src="js/theme.js"></script>
-    <script src="js/paper.js"></script>
-
+  <footer class="footer"><div class="container"><p>由 <a href="https://github.com/shuo456" target="_blank" rel="noopener">Shuo Xu</a> 维护 · 纯静态 GitHub Pages</p></div></footer>
+  <script src="js/theme.js"></script>
+  <script type="module" src="js/paper.js"></script>
 </body>
-
 </html>

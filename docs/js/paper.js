@@ -1,267 +1,130 @@
-/**
- * paper.js — Paper detail page
- * Reads ?id= from URL, finds paper in papers.json, renders full view
- */
+import { SITE_CONFIG } from './config.js';
+import { isSafeHttpsUrl, normalizePapers, renderSafeMarkdown } from './paper-core.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const base = getBasePath();
-    const id = new URLSearchParams(window.location.search).get('id');
+const id = new URLSearchParams(window.location.search).get('id');
+const readKey = SITE_CONFIG.readStorageKey;
 
-    if (!id) { showError('No paper ID specified.'); return; }
-
-    let papers;
-    try {
-        const res = await fetch(`${base}/js/papers.json`);
-        papers = await res.json();
-    } catch (e) {
-        showError('Could not load paper database.'); return;
-    }
-
-    const paper = papers.find(p => p.id === id);
-    if (!paper) { showError(`Paper "${id}" not found.`); return; }
-
-    renderPaper(paper, base);
-});
-
-function getBasePath() {
-    if (window.location.hostname === 'zhaijj.github.io') return '/paper-notebook';
-    const path = window.location.pathname;
-    if (path.includes('/docs/')) return path.substring(0, path.indexOf('/docs/') + 5);
-    return '.';
+function byId(elementId) {
+  return document.getElementById(elementId);
 }
 
-const JOURNAL_SLUGS = {
-    'Nature Plants': 'nature-plants',
-    'Nature Genetics': 'nature-genetics',
-    'Nature Methods': 'nature-methods',
-    'Nature Biotechnology': 'nature-biotech',
-    'Nature': 'nature',
-    'Cell': 'cell',
-    'Cell Genomics': 'cell-genomics',
-    'Genome Biology': 'genome-biology',
-    'PNAS': 'pnas',
-    'bioRxiv': 'biorxiv',
-    'MBE': 'mbe',
-    'arXiv': 'arxiv',
-};
-
-const JOURNAL_ACCENTS = {
-    'nature-plants': '#4caf50',
-    'nature-genetics': '#ab47bc',
-    'nature-methods': '#29b6f6',
-    'nature-biotech': '#ff7043',
-    'nature': '#ef5350',
-    'cell': '#ffa726',
-    'cell-genomics': '#26c6da',
-    'genome-biology': '#66bb6a',
-    'pnas': '#5c6bc0',
-    'biorxiv': '#ec407a',
-    'mbe': '#8d6e63',
-    'arxiv': '#ff7043',
-    'default': '#8b949e',
-};
-
-// ── Read Status (shared localStorage key with app.js) ────────
-const LS_KEY = 'paper-notebook-read';
-
-function loadReadStatus() {
-    try {
-        const stored = localStorage.getItem(LS_KEY);
-        return new Set(stored ? JSON.parse(stored) : []);
-    } catch { return new Set(); }
+function loadReadIds() {
+  try {
+    const value = JSON.parse(localStorage.getItem(readKey) || '[]');
+    return new Set(Array.isArray(value) ? value.map(String) : []);
+  } catch {
+    return new Set();
+  }
 }
 
-function saveReadStatus(set) {
-    localStorage.setItem(LS_KEY, JSON.stringify([...set]));
-}
-
-function setupReadToggleBtn(paperId) {
-    const btn = document.getElementById('btn-read-toggle');
-    if (!btn) return;
-
-    function refresh() {
-        const readSet = loadReadStatus();
-        const isRead = readSet.has(paperId);
-        btn.innerHTML = isRead
-            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Mark as Unread`
-            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Mark as Read`;
-        btn.classList.toggle('btn-read-active', isRead);
-    }
-
-    btn.addEventListener('click', () => {
-        const readSet = loadReadStatus();
-        if (readSet.has(paperId)) { readSet.delete(paperId); } else { readSet.add(paperId); }
-        saveReadStatus(readSet);
-        refresh();
-    });
-
-    refresh();
-}
-
-function renderPaper(paper, base) {
-    const slug = JOURNAL_SLUGS[paper.journal] || 'default';
-    const accent = JOURNAL_ACCENTS[slug] || JOURNAL_ACCENTS.default;
-
-    // Page title
-    document.title = `${paper.title} | Jingjing's Paper Notebook`;
-
-    // Accent CSS var
-    document.documentElement.style.setProperty('--accent', accent);
-    document.documentElement.style.setProperty('--accent-glow', hexToRgba(accent, 0.25));
-
-    // Top hero bar color strip
-    const heroBar = document.getElementById('paper-color-bar');
-    if (heroBar) heroBar.style.background = `linear-gradient(90deg, ${accent}, transparent)`;
-
-    // Journal badge
-    setHTML('paper-journal-badge', `<span class="journal-badge journal-${slug}">${paper.journal}</span>`);
-
-    // Year chip
-    setHTML('paper-year', `<span class="card-year">${paper.year}</span>`);
-
-    // Title
-    setHTML('paper-title', paper.title);
-
-    // Authors (handle both array and legacy string)
-    const authorsText = Array.isArray(paper.authors)
-        ? paper.authors.join(', ')
-        : (paper.authors || '');
-    setHTML('paper-authors', authorsText);
-
-    // Stars
-    setHTML('paper-stars', renderStars(paper.rating || 0));
-
-    // Abstract
-    setHTML('paper-abstract', paper.abstract || '<em>No abstract available.</em>');
-
-    // Notes (parse simple markdown)
-    setHTML('paper-notes', parseMarkdown(paper.notes || '_No notes yet._'));
-
-    // DOI link
-    const doiBtn = document.getElementById('btn-doi');
-    if (doiBtn && paper.doi) {
-        doiBtn.href = `https://doi.org/${paper.doi}`;
-    } else if (doiBtn) {
-        doiBtn.style.display = 'none';
-    }
-
-    // Read toggle button
-    setupReadToggleBtn(paper.id);
-
-    // Sidebar info
-    setHTML('info-journal', paper.journal || '—');
-    setHTML('info-year', paper.year || '—');
-    setHTML('info-doi', paper.doi ? `<a href="https://doi.org/${paper.doi}" target="_blank" style="color:var(--accent);word-break:break-all;">${paper.doi}</a>` : '—');
-    setHTML('info-added', paper.addedDate || '—');
-    setHTML('info-rating', renderStars(paper.rating || 0));
-
-    // Tags
-    const tagsEl = document.getElementById('paper-tags-cloud');
-    if (tagsEl && paper.tags) {
-        tagsEl.innerHTML = paper.tags.map(t =>
-            `<span class="tag">${t}</span>`
-        ).join('');
-    }
-
-    // NotebookLM deep notes
-    const nlmSection = document.getElementById('section-nlm');
-    const nlmNotes = document.getElementById('paper-nlm-notes');
-    const nlmLink = document.getElementById('nlm-open-link');
-    if (nlmSection && paper.notebooklm_notes) {
-        nlmSection.style.display = '';
-        if (nlmNotes) setHTML('paper-nlm-notes', parseMarkdown(paper.notebooklm_notes));
-        if (nlmLink && paper.notebooklm_url) {
-            nlmLink.href = paper.notebooklm_url;
-        } else if (nlmLink) {
-            nlmLink.style.display = 'none';
-        }
-    }
-}
-
-// ── Simple Markdown Parser ────────────────────────────────────
-function parseMarkdown(md) {
-    if (!md) return '';
-    return md
-        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/^- \[ \] (.+)$/gm, '<li class="task-item">$1</li>')
-        .replace(/^- \[x\] (.+)$/gm, '<li class="task-item done">$1</li>')
-        .replace(/^- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
-        .replace(/\n{2,}/g, '</p><p>')
-        .replace(/^(?!<[hul])/gm, '')
-        .trim();
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-function setHTML(id, html) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = html;
+function saveReadIds(readIds) {
+  localStorage.setItem(readKey, JSON.stringify([...readIds]));
 }
 
 function renderStars(rating) {
-    return Array.from({ length: 5 }, (_, i) =>
-        `<span class="star ${i < rating ? 'filled' : 'empty'}">${i < rating ? '★' : '☆'}</span>`
-    ).join('');
+  const score = Math.max(0, Math.min(5, Number(rating) || 0));
+  return `${'★'.repeat(score)}${'☆'.repeat(5 - score)}`;
 }
 
-function hexToRgba(hex, alpha) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
+function setExternalLink(elementId, url) {
+  const link = byId(elementId);
+  if (!link || !url || !isSafeHttpsUrl(url)) return;
+  link.href = url;
+  link.hidden = false;
 }
 
-function showError(msg) {
-    const main = document.querySelector('main');
-    if (main) main.innerHTML = `
-    <div class="container" style="padding: 80px 0; text-align:center; color: var(--text-dim);">
-      <h2 style="margin-bottom:12px;">Oops</h2>
-      <p>${msg}</p>
-      <a href="index.html" class="back-link" style="margin:24px auto 0;">← Back to Papers</a>
-    </div>`;
+function setupReadToggle(paperId) {
+  const button = byId('btn-read-toggle');
+  const refresh = () => {
+    const isRead = loadReadIds().has(paperId);
+    button.textContent = isRead ? '设为未读' : '标为已读';
+    button.classList.toggle('btn-read-active', isRead);
+    button.setAttribute('aria-pressed', String(isRead));
+  };
+
+  button.addEventListener('click', () => {
+    const readIds = loadReadIds();
+    if (readIds.has(paperId)) readIds.delete(paperId);
+    else readIds.add(paperId);
+    saveReadIds(readIds);
+    refresh();
+  });
+  refresh();
 }
 
-// ── Utterances Comments ───────────────────────────────────────
-function initUtterances() {
-    const container = document.getElementById('utterances-container');
-    if (!container) return;
+function renderPaper(paper) {
+  document.title = `${paper.title} · ${SITE_CONFIG.owner} 的论文笔记`;
+  byId('site-title').textContent = SITE_CONFIG.title;
+  byId('site-owner').textContent = SITE_CONFIG.owner;
+  byId('github-link').href = `https://github.com/${SITE_CONFIG.githubOwner}/${SITE_CONFIG.repository}`;
+  byId('paper-venue').textContent = paper.venue || '未注明出处';
+  byId('paper-year').textContent = paper.year || '—';
+  byId('paper-stars').textContent = renderStars(paper.rating);
+  byId('paper-stars').setAttribute('aria-label', `评分 ${paper.rating || 0} / 5`);
+  byId('paper-title').textContent = paper.title;
+  byId('paper-authors').textContent = paper.authors.join(', ') || '作者信息待补充';
+  byId('paper-abstract').textContent = paper.abstract || '暂无摘要。';
+  byId('paper-notes').innerHTML = renderSafeMarkdown(paper.notes || '暂无个人笔记。');
 
-    // Determine the current theme
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const utterancesTheme = isDark ? 'github-dark' : 'github-light';
+  setExternalLink('btn-source', paper.url);
+  setExternalLink('btn-pdf', paper.pdfUrl);
+  if (paper.doi) setExternalLink('btn-doi', `https://doi.org/${paper.doi}`);
 
-    // Create script element
-    const script = document.createElement('script');
-    script.src = 'https://utteranc.es/client.js';
-    script.setAttribute('repo', 'zhaijj/paper-notebook');
-    script.setAttribute('issue-term', 'title');
-    script.setAttribute('label', 'comment');
-    script.setAttribute('theme', utterancesTheme);
-    script.setAttribute('crossorigin', 'anonymous');
-    script.async = true;
+  byId('info-venue').textContent = paper.venue || '—';
+  byId('info-year').textContent = paper.year || '—';
+  byId('info-rating').textContent = renderStars(paper.rating);
+  byId('info-doi').textContent = paper.doi || '—';
+  byId('info-added').textContent = paper.addedDate || '—';
+  byId('info-source').textContent = paper.source || '—';
 
-    container.appendChild(script);
+  const tags = byId('paper-tags');
+  for (const label of paper.tags) {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = label;
+    tags.append(tag);
+  }
+
+  if (paper.notebooklmNotes || paper.notebooklmUrl) {
+    byId('section-nlm').hidden = false;
+    byId('paper-nlm-notes').innerHTML = renderSafeMarkdown(paper.notebooklmNotes || 'NotebookLM 笔记待补充。');
+    setExternalLink('nlm-open-link', paper.notebooklmUrl);
+  }
+  setupReadToggle(paper.id);
 }
 
-// Listen for theme changes to reload Utterances
-document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    // Give the theme change a tiny delay to apply to the document
-    setTimeout(() => {
-        const container = document.getElementById('utterances-container');
-        if (container && container.querySelector('.utterances')) {
-            // Clear existing comments iframe
-            container.innerHTML = '';
-            // Re-initialize with new theme
-            initUtterances();
-        }
-    }, 10);
-});
+function showError(message) {
+  const main = byId('detail-main');
+  main.replaceChildren();
+  const box = document.createElement('div');
+  box.className = 'container load-error';
+  const heading = document.createElement('h1');
+  heading.textContent = '无法打开论文详情';
+  const detail = document.createElement('p');
+  detail.textContent = message;
+  const back = document.createElement('a');
+  back.className = 'btn btn-primary';
+  back.href = 'index.html';
+  back.textContent = '返回论文库';
+  box.append(heading, detail, back);
+  main.append(box);
+}
 
-// Initialize on first load
-document.addEventListener('DOMContentLoaded', () => {
-    // Other init stuff is in DOMContentLoaded at top, but we can just call it here
-    setTimeout(initUtterances, 500); // slight delay to ensure DOM is ready
-});
+async function start() {
+  if (!id) {
+    showError('链接中缺少论文 ID。');
+    return;
+  }
+  try {
+    const response = await fetch(new URL('./papers.json', import.meta.url));
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const paper = normalizePapers(await response.json()).find((item) => item.id === id);
+    if (!paper) showError(`未找到 ID 为“${id}”的论文。`);
+    else renderPaper(paper);
+  } catch (error) {
+    console.error(error);
+    showError('papers.json 加载失败，请检查数据格式。');
+  }
+}
+
+start();
