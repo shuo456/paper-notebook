@@ -1,5 +1,5 @@
 /* ============================================================
-   Jingjing's Paper Notebook — Style System
+   Shuo Xu's Paper Notebook — Style System
    Light/Dark themes + vibrant journal accents + glassmorphism
    ============================================================ */
 
@@ -1425,6 +1425,18 @@ body::after {
 
   .paper-card {
     padding: 18px;
+  }
+
+  .filter-chip,
+  .venue-badge {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .venue-badge {
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   .controls-row2,
