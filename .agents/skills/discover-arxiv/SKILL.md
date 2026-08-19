@@ -14,8 +14,8 @@ Collect current candidates without changing the notebook. Prefer structured arXi
 1. Query `cs.RO`, `cs.LG`, and `eess.SY` through the arXiv API or RSS feed for the latest seven days. Record the query timestamp and category status.
 2. Rank exact research matches first: control barrier functions, safe control, safety-critical systems, robot learning, and reinforcement learning.
 3. Use Firecrawl only when the arXiv record lacks details. If Firecrawl is not configured, continue with complete arXiv records.
-4. Produce canonical candidates with `id`, `title`, `authors`, `venue`, `venueType`, `year`, `publishedDate`, `doi`, `url`, `pdfUrl`, `tags`, `rating`, `abstract`, `notes`, `addedDate`, `updatedDate`, `source`, `notebooklmUrl`, and `notebooklmNotes`.
-5. Set `venue` to `arXiv`, use the HTTPS abstract and PDF URLs, and never invent a DOI.
+4. Produce canonical candidates with `id`, `title`, `authors`, `journal`, `year`, `publishedDate`, `doi`, `url`, `pdfUrl`, `tags`, `rating`, `abstract`, `notes`, `addedDate`, `updatedDate`, `source`, `notebooklm_url`, and `notebooklm_notes`.
+5. Set `journal` to `arXiv`, use the HTTPS abstract and PDF URLs, and never invent a DOI.
 6. Compare normalized ID, DOI, and title against `docs/js/papers.json`. Omit duplicates and report each duplicate reason.
 7. Present a compact numbered list with title, authors, categories, date, and one-line relevance. Ask for numbered selections, `all`, or `none`.
 8. Pass only confirmed selections to `add-to-notebook`. Do not edit JSON, commit, or push from this skill.

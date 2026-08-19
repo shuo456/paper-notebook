@@ -1,0 +1,428 @@
+/* ============================================================
+   Blog-specific styles
+   ============================================================ */
+
+/* Blog listing cards on blog.html */
+.blog-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.blog-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.blog-card-meta {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.blog-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.35;
+}
+
+.blog-card-title a {
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.blog-card-title a:hover {
+  color: var(--accent);
+}
+
+.blog-card-desc {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Blog post article body */
+.blog-post-content {
+  max-width: 720px;
+  margin: 3rem auto 5rem;
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.blog-post-content h1,
+.blog-post-content h2,
+.blog-post-content h3,
+.blog-post-content h4 {
+  color: var(--text);
+  margin: 2.25rem 0 0.75rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.blog-post-content h2 {
+  font-size: 1.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.blog-post-content h3 {
+  font-size: 1.2rem;
+}
+
+.blog-post-content p {
+  margin: 0 0 1.1rem;
+}
+
+.blog-post-content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.blog-post-content ul,
+.blog-post-content ol {
+  padding-left: 1.5rem;
+  margin: 0 0 1.1rem;
+}
+
+.blog-post-content li {
+  margin-bottom: 0.4rem;
+}
+
+.blog-post-content pre {
+  background: var(--code-bg, #1e1e2e);
+  color: var(--code-color, #cdd6f4);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 1.25rem 0;
+}
+
+.blog-post-content code {
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.blog-post-content p code,
+.blog-post-content li code {
+  background: var(--tag-bg, rgba(var(--accent-rgb, 99,102,241), 0.1));
+  color: var(--accent);
+  padding: 0.15em 0.45em;
+  border-radius: 5px;
+  font-size: 0.875em;
+}
+
+.blog-post-content blockquote {
+  border-left: 4px solid var(--accent);
+  margin: 1.25rem 0;
+  padding: 0.75rem 1.25rem;
+  background: var(--tag-bg, rgba(var(--accent-rgb, 99,102,241), 0.07));
+  border-radius: 0 8px 8px 0;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.blog-post-content hr {
+  border: none;
+  border-top: 1.5px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+.blog-post-content img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin: 1.5rem auto;
+  display: block;
+  box-shadow: var(--shadow-md);
+}
+
+/* Active nav link style */
+.nav-active {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* Tables inside blog posts */
+.blog-post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  display: block;
+}
+
+.blog-post-content thead {
+  background: rgba(var(--accent-rgb, 99,102,241), 0.12);
+}
+
+.blog-post-content th,
+.blog-post-content td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.55;
+}
+
+.blog-post-content th {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.blog-post-content tbody tr:nth-child(even) {
+  background: var(--tag-bg, rgba(var(--accent-rgb, 99,102,241), 0.05));
+}
+
+.blog-post-content tbody tr:hover {
+  background: rgba(var(--accent-rgb, 99,102,241), 0.1);
+}
+
+/* ============================================================
+   Reaction bar
+   ============================================================ */
+
+.reaction-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 720px;
+  margin: 0 auto 2.5rem;
+  padding: 1.1rem 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.reaction-label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.reaction-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 1.1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  user-select: none;
+}
+
+.reaction-btn:hover {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb, 99,102,241), 0.08);
+  transform: scale(1.07);
+}
+
+.reaction-btn.active {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb, 99,102,241), 0.15);
+  font-weight: 600;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.reaction-btn.pop {
+  animation: pop 0.3s ease;
+}
+
+/* ============================================================
+   Comments section (Giscus)
+   ============================================================ */
+
+.comments-section {
+  max-width: 720px;
+  margin: 0 auto 4rem;
+  padding-top: 1rem;
+  border-top: 1.5px solid var(--border);
+}
+
+.comments-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 1.25rem;
+}
+
+/* ============================================================
+   Subscribe section
+   ============================================================ */
+
+.subscribe-section {
+  margin: 3rem 0 1rem;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg,
+    rgba(var(--accent-rgb, 99,102,241), 0.06),
+    rgba(var(--accent-rgb, 99,102,241), 0.02)
+  );
+  border: 1.5px solid rgba(var(--accent-rgb, 99,102,241), 0.18);
+  border-radius: var(--radius, 12px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.subscribe-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 30% 40%,
+    rgba(var(--accent-rgb, 99,102,241), 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.subscribe-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.subscribe-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.subscribe-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+}
+
+.subscribe-desc {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.subscribe-form {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.subscribe-form input[type="email"] {
+  flex: 1;
+  min-width: 0;
+  max-width: 280px;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.subscribe-form input[type="email"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 99,102,241), 0.15);
+}
+
+.subscribe-form input[type="email"]::placeholder {
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+.subscribe-btn {
+  padding: 0.65rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.subscribe-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb, 99,102,241), 0.3);
+}
+
+.subscribe-btn:active {
+  transform: translateY(0);
+}
+
+.subscribe-alt {
+  margin-top: 1rem;
+}
+
+.rss-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.rss-link:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .subscribe-section {
+    padding: 2rem 1.25rem;
+  }
+
+  .subscribe-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .subscribe-form input[type="email"] {
+    max-width: 100%;
+  }
+}

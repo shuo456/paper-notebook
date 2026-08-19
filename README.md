@@ -31,8 +31,7 @@ npm test
 | `id` | string | 稳定且唯一的论文标识 |
 | `title` | string | 原始论文标题 |
 | `authors` | string[] | 完整作者列表 |
-| `venue` | string | 期刊、会议或 arXiv |
-| `venueType` | string | `journal`、`conference`、`preprint` 或 `other` |
+| `journal` | string | 期刊、会议或 arXiv |
 | `year` | integer | 发表年份 |
 | `publishedDate` | string | `YYYY-MM-DD`，未知时留空 |
 | `doi` | string | 纯 DOI，不含网址；未知时留空 |
@@ -43,8 +42,8 @@ npm test
 | `notes` | string | 个人 Markdown 笔记 |
 | `addedDate` / `updatedDate` | string | `YYYY-MM-DD`；未更新时后者留空 |
 | `source` | string | 元数据来源 |
-| `notebooklmUrl` | string | HTTPS NotebookLM 地址，未关联时留空 |
-| `notebooklmNotes` | string | 审核后的 NotebookLM Markdown 笔记 |
+| `notebooklm_url` | string | HTTPS NotebookLM 地址，未关联时留空 |
+| `notebooklm_notes` | string | 审核后的 NotebookLM Markdown 笔记 |
 
 新增时按三级顺序去重：**ID → DOI → 标题**。标题会忽略大小写、标点和多余空格；DOI 会移除网址前缀并转为小写。
 

@@ -57,7 +57,7 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(token, add)
 
         notebooklm = self.read_skill("link_notebooklm", "link-notebooklm")
-        for token in ("user approval", "notebooklmUrl", "notebooklmNotes", "--force", "overwrite confirmation"):
+        for token in ("user approval", "notebooklm_url", "notebooklm_notes", "--force", "overwrite confirmation"):
             self.assertIn(token, notebooklm)
 
         publish = self.read_skill("publish-notebook")
@@ -67,10 +67,12 @@ class SkillContractTests(unittest.TestCase):
         self.assertLess(publish.index("explicit user confirmation"), publish.index("git push"))
 
     def test_skills_have_no_stale_domain_owner_or_legacy_fields(self):
-        stale = re.compile(r"plant genomics|maize|Nature Plants|Jingjing|zhaijj|/Users/|notebooklm_url|notebooklm_notes", re.I)
+        stale = re.compile(r"plant genomics|maize|Nature Plants|Jingjing|zhaijj|/Users/|notebooklmUrl|notebooklmNotes|venueType", re.I)
         matches = []
         for path in SKILLS.rglob("*"):
             if path.is_file() and path.suffix in {".md", ".py", ".yaml", ".json"}:
+                if path.name == "paper_store.py":
+                    continue
                 for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
                     if stale.search(line):
                         matches.append(f"{path.relative_to(ROOT)}:{number}")

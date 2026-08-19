@@ -1,66 +1,158 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="en" data-theme="light">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shuo Xu 的论文笔记</title>
-  <meta name="description" content="安全控制、机器人学习与强化学习论文笔记">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shuo Xu's Paper Notebook</title>
+  <meta name="description"
+    content="A curated notebook of paper notes and abstracts from top journals in control barrier functions, safe control, robot learning, and reinforcement learning — by Shuo Xu." />
+  <meta property="og:title" content="Shuo Xu's Paper Notebook" />
+  <meta property="og:description"
+    content="Curated paper notes on control barrier functions, safe control, robot learning, and reinforcement learning." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
+  <!-- Apply saved theme immediately to prevent flash -->
   <script>
-    (() => document.documentElement.setAttribute('data-theme', localStorage.getItem('pn-theme') || 'light'))();
+    (function () { var t = localStorage.getItem('pn-theme') || 'light'; document.documentElement.setAttribute('data-theme', t); })();
   </script>
 </head>
+
 <body>
+
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="container navbar-inner">
-      <a href="index.html" class="logo" aria-label="返回论文列表">
-        <span class="logo-icon" aria-hidden="true">📚</span>
-        <span><span class="logo-text" id="site-title">论文笔记</span><span class="logo-sub" id="site-owner">Shuo Xu</span></span>
+      <a href="index.html" class="logo">
+        <div class="logo-icon">📚</div>
+        <div>
+          <span class="logo-text">Paper Notebook</span>
+          <span class="logo-sub">Shuo Xu</span>
+        </div>
       </a>
       <ul class="nav-links">
-        <li><a href="index.html" aria-current="page">论文库</a></li>
-        <li><a id="github-link" href="https://github.com/shuo456/paper-notebook" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-        <li><span class="nav-count" id="nav-count">— 篇</span></li>
-        <li><button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换深浅主题"><span class="toggle-icon" aria-hidden="true">🌙</span><span class="toggle-label">深色</span></button></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="https://github.com/shuo456/paper-notebook" target="_blank">GitHub</a></li>
+        <li><span class="nav-count" id="nav-count">— papers</span></li>
+        <li>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">
+            <span class="toggle-icon">🌙</span>
+            <span class="toggle-label">Dark</span>
+          </button>
+        </li>
       </ul>
     </div>
   </nav>
 
+  <!-- HERO -->
   <header class="hero">
     <div class="container">
-      <div class="hero-eyebrow" id="site-subtitle">安全控制 · 机器人学习 · 强化学习</div>
-      <h1>我的阅读笔记与论文摘要</h1>
-      <p>一个面向控制障碍函数、安全关键系统和学习控制的个人论文库。</p>
-      <div class="hero-stats" aria-label="论文库统计">
-        <div class="stat"><span class="stat-number" id="stat-count">—</span><span class="stat-label">论文</span></div>
-        <div class="stat"><span class="stat-number" id="stat-venues">—</span><span class="stat-label">期刊与会议</span></div>
-        <div class="stat"><span class="stat-number" id="stat-year">—</span><span class="stat-label">最新年份</span></div>
+      <div class="hero-eyebrow">
+        🛡️ Control Barrier Functions · Safe Control · Robot Learning
+      </div>
+      <h1>My Reading Notes &amp; Paper Abstracts</h1>
+      <p>A personal, searchable library of papers I've read — with highlights, notes, and key takeaways from top
+        journals.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-number" id="stat-count">—</span>
+          <span class="stat-label">Papers</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number" id="stat-journals">—</span>
+          <span class="stat-label">Journals</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number" id="stat-year">—</span>
+          <span class="stat-label">Latest Year</span>
+        </div>
       </div>
     </div>
   </header>
 
   <main>
     <div class="container">
-      <section class="controls" aria-label="搜索和出处筛选">
-        <label class="search-wrap"><span aria-hidden="true">⌕</span><input id="search-input" class="search-input" type="search" placeholder="搜索标题、作者、摘要或标签…" autocomplete="off"></label>
-        <div class="filter-group" id="venue-filters" aria-label="按期刊或会议筛选"></div>
-      </section>
-      <section class="controls controls-row2" aria-label="阅读状态与排序">
-        <button id="deep-notes-toggle" class="filter-chip" type="button" aria-pressed="false">📓 仅深度笔记</button>
-        <button id="unread-toggle" class="filter-chip" type="button" aria-pressed="false">○ 仅未读</button>
-        <button id="read-only-toggle" class="filter-chip" type="button" aria-pressed="false">✓ 仅已读</button>
-        <div class="sort-wrap"><label for="sort-select" class="sort-label">排序</label><select id="sort-select" class="sort-select"><option value="newest">最近添加或更新</option><option value="oldest">最早添加</option><option value="rating">评分最高</option></select></div>
-        <div class="sort-wrap"><label for="limit-select" class="sort-label">显示</label><select id="limit-select" class="sort-select"><option value="25">25 篇</option><option value="50" selected>50 篇</option><option value="100">100 篇</option><option value="0">全部</option></select></div>
-      </section>
-      <div id="active-tag" class="active-tag" hidden><span>当前标签：<strong id="active-tag-name"></strong></span><button id="clear-tag" type="button">清除</button></div>
-      <section id="load-error" class="load-error" role="alert" hidden><h2>论文数据加载失败</h2><p>请检查 <code>papers.json</code> 后重试。</p><button id="retry-load" class="btn btn-primary" type="button">重新加载</button></section>
-      <div class="papers-grid" id="papers-grid" aria-live="polite"><div class="no-results"><p>正在加载论文…</p></div></div>
+
+      <!-- CONTROLS -->
+      <div class="controls">
+        <div class="search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input id="search-input" class="search-input" type="search" placeholder="Search by title, author, or keyword…"
+            aria-label="Search papers" />
+        </div>
+        <div class="filter-group" id="journal-filters"></div>
+      </div>
+
+      <!-- SECOND CONTROLS ROW -->
+      <div class="controls controls-row2">
+        <button id="deep-notes-toggle" class="filter-chip deep-notes-chip" aria-pressed="false">
+          📓 Deep Notes Only
+        </button>
+        <button id="unread-toggle" class="filter-chip unread-chip" aria-pressed="false">
+          ○ Unread Only
+        </button>
+        <button id="read-only-toggle" class="filter-chip read-only-chip" aria-pressed="false">
+          ✓ Read Only
+        </button>
+        <div class="sort-wrap">
+          <label for="sort-select" class="sort-label">Sort by</label>
+          <select id="sort-select" class="sort-select" aria-label="Sort papers">
+            <option value="newest">Newest Added/Updated</option>
+            <option value="oldest">Oldest Added</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+        </div>
+        <div class="sort-wrap">
+          <label for="limit-select" class="sort-label">Show top</label>
+          <select id="limit-select" class="sort-select" aria-label="Number of papers to show">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="0">All</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PAPER GRID -->
+      <div class="papers-grid" id="papers-grid">
+        <div class="no-results">
+          <p style="color: var(--text-dim);">Loading papers…</p>
+        </div>
+      </div>
+
     </div>
   </main>
 
-  <footer class="footer"><div class="container"><p>由 <a href="https://github.com/shuo456" target="_blank" rel="noopener noreferrer">Shuo Xu</a> 维护 · 使用纯 HTML、CSS 与 JavaScript 构建</p></div></footer>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p>
+        Maintained by <a href="https://github.com/shuo456" target="_blank">Shuo Xu</a> ·
+        Built with 💚 and plain HTML ·
+        <a href="https://github.com/shuo456/paper-notebook" target="_blank">View on GitHub</a>
+      </p>
+    </div>
+  </footer>
+
   <script src="js/theme.js"></script>
-  <script type="module" src="js/app.js?v=20260818"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const observer = new MutationObserver(() => {
+      const count = document.getElementById('stat-count');
+      const nav = document.getElementById('nav-count');
+      if (count && nav && count.textContent !== '—') {
+        nav.textContent = count.textContent + ' papers';
+      }
+    });
+    const statEl = document.getElementById('stat-count');
+    if (statEl) observer.observe(statEl, { childList: true, characterData: true, subtree: true });
+  </script>
+
 </body>
+
 </html>

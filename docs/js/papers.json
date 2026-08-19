@@ -8,8 +8,7 @@
       "Jessy W. Grizzle",
       "Paulo Tabuada"
     ],
-    "venue": "IEEE Transactions on Automatic Control",
-    "venueType": "journal",
+    "journal": "IEEE Transactions on Automatic Control",
     "year": 2017,
     "publishedDate": "2017-08-01",
     "doi": "10.1109/TAC.2016.2638961",
@@ -27,8 +26,8 @@
     "addedDate": "2026-08-18",
     "updatedDate": "",
     "source": "IEEE Xplore",
-    "notebooklmUrl": "",
-    "notebooklmNotes": ""
+    "notebooklm_url": "",
+    "notebooklm_notes": ""
   },
   {
     "id": "berkenkamp2017safe",
@@ -39,8 +38,7 @@
       "Angela P. Schoellig",
       "Andreas Krause"
     ],
-    "venue": "Advances in Neural Information Processing Systems 30",
-    "venueType": "conference",
+    "journal": "Advances in Neural Information Processing Systems 30",
     "year": 2017,
     "publishedDate": "",
     "doi": "",
@@ -58,8 +56,8 @@
     "addedDate": "2026-08-18",
     "updatedDate": "",
     "source": "NeurIPS Proceedings",
-    "notebooklmUrl": "",
-    "notebooklmNotes": ""
+    "notebooklm_url": "",
+    "notebooklm_notes": ""
   },
   {
     "id": "haarnoja2018sac",
@@ -70,8 +68,7 @@
       "Pieter Abbeel",
       "Sergey Levine"
     ],
-    "venue": "Proceedings of Machine Learning Research 80 (ICML 2018)",
-    "venueType": "conference",
+    "journal": "Proceedings of Machine Learning Research 80 (ICML 2018)",
     "year": 2018,
     "publishedDate": "2018-07-10",
     "doi": "",
@@ -89,7 +86,7 @@
     "addedDate": "2026-08-18",
     "updatedDate": "",
     "source": "PMLR",
-    "notebooklmUrl": "",
-    "notebooklmNotes": "## NotebookLM 示例笔记\n\n**一句话总结：** SAC 通过最大化奖励与策略熵，在连续控制中兼顾探索、样本效率和训练稳定性。\n\n### 阅读线索\n\n- 为什么最大熵目标能够产生更鲁棒的策略？\n- 温度参数如何控制奖励与随机性的权衡？\n- 将 SAC 用于安全关键机器人时，还需要额外加入哪些约束或安全过滤器？"
+    "notebooklm_url": "",
+    "notebooklm_notes": "## NotebookLM 示例笔记\n\n**一句话总结：** SAC 通过最大化奖励与策略熵，在连续控制中兼顾探索、样本效率和训练稳定性。\n\n### 阅读线索\n\n- 为什么最大熵目标能够产生更鲁棒的策略？\n- 温度参数如何控制奖励与随机性的权衡？\n- 将 SAC 用于安全关键机器人时，还需要额外加入哪些约束或安全过滤器？"
   }
 ]

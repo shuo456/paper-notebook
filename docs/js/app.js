@@ -1,204 +1,409 @@
-import { SITE_CONFIG } from './config.js';
-import { normalizePapers, selectVisiblePapers } from './paper-core.js';
+/**
+ * app.js — Paper Notes Notebook
+ * Loads papers.json, renders cards, handles search + filter
+ */
 
-const state = {
-  papers: [], query: '', venue: 'all', tag: null, readMode: 'all',
-  deepNotesOnly: false, sortMode: 'newest', limit: 50, readIds: new Set(),
+// ── Journal config ──────────────────────────────────────────
+const JOURNAL_SLUGS = {
+    'Nature Plants': 'nature-plants',
+    'Nature Genetics': 'nature-genetics',
+    'Nature Methods': 'nature-methods',
+    'Nature Biotechnology': 'nature-biotech',
+    'Nature': 'nature',
+    'Cell': 'cell',
+    'Cell Genomics': 'cell-genomics',
+    'Genome Biology': 'genome-biology',
+    'PNAS': 'pnas',
+    'bioRxiv': 'biorxiv',
+    'MBE': 'mbe',
+    'arXiv': 'arxiv',
 };
-const elements = {};
 
-document.addEventListener('DOMContentLoaded', () => {
-  cacheElements();
-  applySiteConfig();
-  state.readIds = loadReadIds();
-  bindControls();
-  loadPapers();
-});
+const JOURNAL_ACCENTS = {
+    'nature-plants': '#4caf50',
+    'nature-genetics': '#ab47bc',
+    'nature-methods': '#29b6f6',
+    'nature-biotech': '#ff7043',
+    'nature': '#ef5350',
+    'cell': '#ffa726',
+    'cell-genomics': '#26c6da',
+    'genome-biology': '#66bb6a',
+    'pnas': '#5c6bc0',
+    'biorxiv': '#ec407a',
+    'mbe': '#8d6e63',
+    'arxiv': '#ff7043',
+    'default': '#8b949e',
+};
 
-function cacheElements() {
-  for (const id of ['papers-grid', 'venue-filters', 'search-input', 'deep-notes-toggle', 'unread-toggle', 'read-only-toggle', 'sort-select', 'limit-select', 'active-tag', 'active-tag-name', 'clear-tag', 'load-error', 'retry-load', 'stat-count', 'stat-venues', 'stat-year', 'nav-count']) {
-    elements[id] = document.getElementById(id);
-  }
+// ── State ────────────────────────────────────────────────────
+let allPapers = [];
+let activeJournal = 'all';
+let activeTag = null;
+let searchQuery = '';
+let deepNotesOnly = false;
+let unreadOnly = false;
+let readOnly = false;
+let activeSort = 'newest'; // 'newest' | 'oldest' | 'rating'
+let displayLimit = 50;   // 25 | 50 | 100 | 0 (= all)
+
+// ── Read Status (localStorage) ────────────────────────────────
+const LS_KEY = 'paper-notebook-read';
+let readPapers = new Set();
+
+function loadReadStatus() {
+    try {
+        const stored = localStorage.getItem(LS_KEY);
+        readPapers = new Set(stored ? JSON.parse(stored) : []);
+    } catch { readPapers = new Set(); }
 }
 
-function applySiteConfig() {
-  document.title = SITE_CONFIG.title;
-  document.getElementById('site-title').textContent = SITE_CONFIG.title;
-  document.getElementById('site-owner').textContent = SITE_CONFIG.owner;
-  document.getElementById('site-subtitle').textContent = SITE_CONFIG.subtitle;
-  document.getElementById('github-link').href = `https://github.com/${SITE_CONFIG.githubOwner}/${SITE_CONFIG.repository}`;
-}
-
-function loadReadIds() {
-  try {
-    const value = JSON.parse(localStorage.getItem(SITE_CONFIG.readStorageKey) || '[]');
-    return new Set(Array.isArray(value) ? value.map(String) : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveReadIds() {
-  localStorage.setItem(SITE_CONFIG.readStorageKey, JSON.stringify([...state.readIds]));
-}
-
-async function loadPapers() {
-  elements['load-error'].hidden = true;
-  showLoading();
-  try {
-    const response = await fetch(new URL('./papers.json', import.meta.url), { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const value = await response.json();
-    if (!Array.isArray(value)) throw new TypeError('papers.json 顶层必须是数组');
-    state.papers = normalizePapers(value);
-    renderStats();
-    renderVenueFilters();
-    render();
-  } catch (error) {
-    console.error('论文数据加载失败:', error);
-    state.papers = [];
-    elements['papers-grid'].replaceChildren();
-    elements['load-error'].hidden = false;
-  }
-}
-
-function bindControls() {
-  elements['search-input'].addEventListener('input', (event) => { state.query = event.target.value; render(); });
-  elements['deep-notes-toggle'].addEventListener('click', () => { state.deepNotesOnly = !state.deepNotesOnly; render(); });
-  elements['unread-toggle'].addEventListener('click', () => { state.readMode = state.readMode === 'unread' ? 'all' : 'unread'; render(); });
-  elements['read-only-toggle'].addEventListener('click', () => { state.readMode = state.readMode === 'read' ? 'all' : 'read'; render(); });
-  elements['sort-select'].addEventListener('change', (event) => { state.sortMode = event.target.value; render(); });
-  elements['limit-select'].addEventListener('change', (event) => { state.limit = Number(event.target.value); render(); });
-  elements['clear-tag'].addEventListener('click', () => { state.tag = null; render(); });
-  elements['retry-load'].addEventListener('click', loadPapers);
-}
-
-function renderStats() {
-  const years = state.papers.map((paper) => paper.year).filter(Boolean);
-  elements['stat-count'].textContent = String(state.papers.length);
-  elements['stat-venues'].textContent = String(new Set(state.papers.map((paper) => paper.venue)).size);
-  elements['stat-year'].textContent = years.length ? String(Math.max(...years)) : '—';
-  elements['nav-count'].textContent = `${state.papers.length} 篇`;
-}
-
-function renderVenueFilters() {
-  const venues = ['all', ...new Set(state.papers.map((paper) => paper.venue).filter(Boolean))];
-  const fragment = document.createDocumentFragment();
-  for (const venue of venues) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `filter-chip${state.venue === venue ? ' active' : ''}`;
-    button.textContent = venue === 'all' ? '全部出处' : venue;
-    button.addEventListener('click', () => { state.venue = venue; renderVenueFilters(); render(); });
-    fragment.append(button);
-  }
-  elements['venue-filters'].replaceChildren(fragment);
-}
-
-function render() {
-  updateControlStates();
-  const visible = selectVisiblePapers(state.papers, state);
-  if (!visible.length) {
-    const empty = document.createElement('div');
-    empty.className = 'no-results';
-    const heading = document.createElement('h3');
-    heading.textContent = '没有符合当前条件的论文';
-    const copy = document.createElement('p');
-    copy.textContent = '请尝试清除标签或调整搜索与筛选条件。';
-    empty.append(heading, copy);
-    elements['papers-grid'].replaceChildren(empty);
-    return;
-  }
-  const fragment = document.createDocumentFragment();
-  visible.forEach((paper, index) => fragment.append(buildCard(paper, index)));
-  elements['papers-grid'].replaceChildren(fragment);
-}
-
-function updateControlStates() {
-  setPressed(elements['deep-notes-toggle'], state.deepNotesOnly);
-  setPressed(elements['unread-toggle'], state.readMode === 'unread');
-  setPressed(elements['read-only-toggle'], state.readMode === 'read');
-  elements['active-tag'].hidden = !state.tag;
-  elements['active-tag-name'].textContent = state.tag || '';
-}
-
-function setPressed(button, pressed) {
-  button.setAttribute('aria-pressed', String(pressed));
-  button.classList.toggle('active', pressed);
-}
-
-function buildCard(paper, index) {
-  const card = document.createElement('article');
-  card.className = `paper-card${state.readIds.has(paper.id) ? ' paper-card--read' : ''}`;
-  card.style.animationDelay = `${Math.min(index, 8) * 35}ms`;
-  const header = document.createElement('div');
-  header.className = 'card-header';
-  const venue = document.createElement('span');
-  venue.className = 'venue-badge';
-  venue.textContent = paper.venue || '未知出处';
-  const year = document.createElement('span');
-  year.className = 'card-year';
-  year.textContent = paper.year ? String(paper.year) : '—';
-  header.append(venue, year);
-  const title = document.createElement('a');
-  title.className = 'card-title';
-  title.href = `paper.html?id=${encodeURIComponent(paper.id)}`;
-  title.textContent = paper.title || '未命名论文';
-  const authors = document.createElement('p');
-  authors.className = 'card-authors';
-  authors.textContent = formatAuthors(paper.authors);
-  const abstract = document.createElement('p');
-  abstract.className = 'card-abstract';
-  abstract.textContent = paper.abstract || '暂无摘要。';
-  const footer = document.createElement('div');
-  footer.className = 'card-footer';
-  const tags = document.createElement('div');
-  tags.className = 'card-tags';
-  paper.tags.slice(0, 4).forEach((tag) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'tag';
-    button.textContent = tag;
-    button.addEventListener('click', () => { state.tag = state.tag === tag ? null : tag; render(); });
-    tags.append(button);
-  });
-  const actions = document.createElement('div');
-  actions.className = 'card-footer-right';
-  if (paper.notebooklmNotes || paper.notebooklmUrl) {
-    const badge = document.createElement('span');
-    badge.className = 'nlm-badge';
-    badge.textContent = '📓 深度笔记';
-    actions.append(badge);
-  }
-  const stars = document.createElement('span');
-  stars.className = 'star-rating';
-  stars.textContent = `${'★'.repeat(paper.rating)}${'☆'.repeat(Math.max(0, 5 - paper.rating))}`;
-  stars.setAttribute('aria-label', `评分 ${paper.rating} / 5`);
-  const readButton = document.createElement('button');
-  readButton.type = 'button';
-  readButton.className = 'card-read-toggle';
-  readButton.textContent = state.readIds.has(paper.id) ? '已读' : '标为已读';
-  readButton.addEventListener('click', () => toggleRead(paper.id));
-  actions.append(stars, readButton);
-  footer.append(tags, actions);
-  card.append(header, title, authors, abstract, footer);
-  return card;
+function saveReadStatus() {
+    localStorage.setItem(LS_KEY, JSON.stringify([...readPapers]));
 }
 
 function toggleRead(id) {
-  if (state.readIds.has(id)) state.readIds.delete(id);
-  else state.readIds.add(id);
-  saveReadIds();
-  render();
+    if (readPapers.has(id)) { readPapers.delete(id); } else { readPapers.add(id); }
+    saveReadStatus();
 }
 
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    loadReadStatus();
+    const base = getBasePath();
+    allPapers = await loadPapers(base);
+    renderStats();
+    renderJournalFilters();
+    renderCards();
+    setupSearch();
+    setupDeepNotesToggle();
+    setupUnreadToggle();
+    setupReadToggle();
+    setupSortSelect();
+    setupDisplayLimit();
+});
+
+function getBasePath() {
+    // If on GitHub Pages
+    if (window.location.hostname === 'shuo456.github.io') {
+        return '/paper-notebook';
+    }
+
+    // For local file:/// viewing, we need the path up to /docs
+    const path = window.location.pathname;
+    if (path.includes('/docs/')) {
+        return path.substring(0, path.indexOf('/docs/') + 5);
+    }
+
+    return '.';
+    return '.';
+}
+
+async function loadPapers(base) {
+    try {
+        const res = await fetch(`${base}/js/papers.json`);
+        if (!res.ok) throw new Error('Failed to fetch papers.json');
+        return await res.json();
+    } catch (e) {
+        console.error('Could not load papers:', e);
+        return [];
+    }
+}
+
+// ── Stats ─────────────────────────────────────────────────────
+function renderStats() {
+    const count = document.getElementById('stat-count');
+    const journalCount = document.getElementById('stat-journals');
+    const yearEl = document.getElementById('stat-year');
+    if (count) count.textContent = allPapers.length;
+    if (journalCount) {
+        journalCount.textContent = new Set(allPapers.map(p => p.journal)).size;
+    }
+    const years = allPapers.map(p => p.year).filter(Boolean);
+    if (yearEl && years.length) yearEl.textContent = Math.max(...years);
+}
+
+// ── Journal Filter Chips ──────────────────────────────────────
+function renderJournalFilters() {
+    const wrap = document.getElementById('journal-filters');
+    if (!wrap) return;
+
+    const journals = ['all', ...new Set(allPapers.map(p => p.journal))];
+    wrap.innerHTML = '';
+
+    journals.forEach(j => {
+        const slug = j === 'all' ? 'all' : (JOURNAL_SLUGS[j] || 'default');
+        const accent = JOURNAL_ACCENTS[slug] || JOURNAL_ACCENTS.default;
+        const chip = document.createElement('button');
+        chip.className = 'filter-chip' + (j === 'all' || j === activeJournal ? ' active' : '');
+        chip.textContent = j === 'all' ? 'All Journals' : j;
+        if (chip.classList.contains('active') && j !== 'all') {
+            chip.style.background = accent;
+            chip.style.borderColor = accent;
+        } else if (j === 'all' && activeJournal === 'all') {
+            chip.style.background = 'rgba(88,166,255,0.2)';
+            chip.style.borderColor = 'rgba(88,166,255,0.5)';
+            chip.style.color = '#58a6ff';
+        }
+        chip.addEventListener('click', () => {
+            activeJournal = j;
+            renderJournalFilters();
+            renderCards();
+        });
+        wrap.appendChild(chip);
+    });
+}
+
+// ── Search ────────────────────────────────────────────────────
+function setupSearch() {
+    const input = document.getElementById('search-input');
+    if (!input) return;
+    input.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase().trim();
+        renderCards();
+    });
+}
+
+// ── Deep Notes Toggle ─────────────────────────────────────────
+function setupDeepNotesToggle() {
+    const btn = document.getElementById('deep-notes-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        deepNotesOnly = !deepNotesOnly;
+        btn.setAttribute('aria-pressed', deepNotesOnly);
+        btn.classList.toggle('active', deepNotesOnly);
+        renderCards();
+    });
+}
+
+// ── Unread Only Toggle ────────────────────────────────────────
+function setupUnreadToggle() {
+    const btn = document.getElementById('unread-toggle');
+    const readBtn = document.getElementById('read-only-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        unreadOnly = !unreadOnly;
+        // mutually exclusive with Read Only
+        if (unreadOnly) { readOnly = false; readBtn?.classList.remove('active'); readBtn?.setAttribute('aria-pressed', false); }
+        btn.setAttribute('aria-pressed', unreadOnly);
+        btn.classList.toggle('active', unreadOnly);
+        renderCards();
+    });
+}
+
+// ── Read Only Toggle ──────────────────────────────────────────
+function setupReadToggle() {
+    const btn = document.getElementById('read-only-toggle');
+    const unreadBtn = document.getElementById('unread-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        readOnly = !readOnly;
+        // mutually exclusive with Unread Only
+        if (readOnly) { unreadOnly = false; unreadBtn?.classList.remove('active'); unreadBtn?.setAttribute('aria-pressed', false); }
+        btn.setAttribute('aria-pressed', readOnly);
+        btn.classList.toggle('active', readOnly);
+        renderCards();
+    });
+}
+
+// ── Sort Select ───────────────────────────────────────────────
+function setupSortSelect() {
+    const sel = document.getElementById('sort-select');
+    if (!sel) return;
+    sel.addEventListener('change', (e) => {
+        activeSort = e.target.value;
+        renderCards();
+    });
+}
+
+// ── Sort logic ────────────────────────────────────────────────
+// Effective date = max(updatedDate, addedDate) so that papers updated
+// (e.g. via NotebookLM linking) bubble to the top on "newest" sort.
+function effectiveDate(paper) {
+    const added = paper.addedDate
+        ? new Date(paper.addedDate).getTime()
+        : new Date(`${paper.year}-01-01`).getTime();
+    const updated = paper.updatedDate
+        ? new Date(paper.updatedDate).getTime()
+        : 0;
+    return Math.max(added, updated);
+}
+
+function sortPapers(papers) {
+    // Preserve original array index as insertion-order tiebreaker
+    const indexed = papers.map((p, i) => ({ p, i }));
+    indexed.sort((a, b) => {
+        // Unread papers always float above read ones
+        const readA = readPapers.has(a.p.id) ? 1 : 0;
+        const readB = readPapers.has(b.p.id) ? 1 : 0;
+        if (readA !== readB) return readA - readB;
+
+        if (activeSort === 'rating') {
+            return (b.p.rating || 0) - (a.p.rating || 0);
+        }
+        const dateA = effectiveDate(a.p);
+        const dateB = effectiveDate(b.p);
+        if (dateA !== dateB) {
+            return activeSort === 'oldest' ? dateA - dateB : dateB - dateA;
+        }
+        // Same effective date: later array position = more recently added
+        return activeSort === 'oldest' ? a.i - b.i : b.i - a.i;
+    });
+    return indexed.map(({ p }) => p);
+}
+
+
+// ── Filter logic ──────────────────────────────────────────────
+function filterPapers() {
+    return allPapers.filter(p => {
+        const journalMatch = activeJournal === 'all' || p.journal === activeJournal;
+        const tagMatch = !activeTag || (p.tags && p.tags.includes(activeTag));
+        const deepMatch = !deepNotesOnly || !!p.notebooklm_url;
+        const unreadMatch = !unreadOnly || !readPapers.has(p.id);
+        const readMatch = !readOnly || readPapers.has(p.id);
+        const q = searchQuery;
+
+        // Handle authors as string or array
+        const authorsString = Array.isArray(p.authors) ? p.authors.join(' ') : (p.authors || '');
+
+        const searchMatch = !q ||
+            p.title.toLowerCase().includes(q) ||
+            authorsString.toLowerCase().includes(q) ||
+            (p.tags && p.tags.join(' ').toLowerCase().includes(q)) ||
+            (p.abstract && p.abstract.toLowerCase().includes(q));
+        return journalMatch && tagMatch && deepMatch && unreadMatch && readMatch && searchMatch;
+    });
+}
+
+// ── Build a single card DOM element ──────────────────────────
+function buildCard(paper, animIndex) {
+    const slug = JOURNAL_SLUGS[paper.journal] || 'default';
+    const accent = JOURNAL_ACCENTS[slug] || JOURNAL_ACCENTS.default;
+    const detailUrl = `paper.html?id=${paper.id}`;
+    const isRead = readPapers.has(paper.id);
+
+    const card = document.createElement('a');
+    card.className = 'paper-card' + (isRead ? ' paper-card--read' : '');
+    card.href = detailUrl;
+    card.style.setProperty('--card-accent', accent);
+    card.style.setProperty('--accent-glow', hexToRgba(accent, 0.15));
+    card.style.animationDelay = `${animIndex * 0.05}s`;
+
+    const stars = renderStars(paper.rating || 0);
+    const tagsHtml = (paper.tags || []).slice(0, 3).map(t =>
+        `<span class="tag" data-tag="${t}">${t}</span>`
+    ).join('');
+
+    const nlmBadge = paper.notebooklm_url
+        ? `<a class="nlm-badge" href="${paper.notebooklm_url}" target="_blank" rel="noopener" title="Open in NotebookLM">📓 Deep Notes</a>`
+        : '';
+
+    card.innerHTML = `
+  <div class="card-header">
+    <span class="journal-badge journal-${slug}">${paper.journal}</span>
+    <span class="card-year">${paper.year}</span>
+    <button class="read-checkbox ${isRead ? 'read-checkbox--read' : ''}" title="${isRead ? 'Mark as unread' : 'Mark as read'}" aria-label="${isRead ? 'Mark as unread' : 'Mark as read'}" aria-pressed="${isRead}">
+      ${isRead ? '✓ Read' : '○ Unread'}
+    </button>
+  </div>
+  <h2 class="card-title">${paper.title}</h2>
+  <p class="card-authors">${formatAuthors(paper.authors)}</p>
+  <p class="card-abstract">${paper.abstract || ''}</p>
+  <div class="card-footer">
+    <div class="card-tags">${tagsHtml}</div>
+    <div class="card-footer-right">
+      ${nlmBadge}
+      <div class="star-rating">${stars}</div>
+    </div>
+  </div>`;
+
+    card.querySelectorAll('.tag').forEach(tagEl => {
+        tagEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            activeTag = activeTag === tagEl.dataset.tag ? null : tagEl.dataset.tag;
+            renderCards();
+        });
+    });
+
+    const badge = card.querySelector('.nlm-badge');
+    if (badge) badge.addEventListener('click', (e) => e.stopPropagation());
+
+    // Read checkbox — toggle without navigating to paper
+    const readBtn = card.querySelector('.read-checkbox');
+    if (readBtn) {
+        readBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleRead(paper.id);
+            const nowRead = readPapers.has(paper.id);
+            readBtn.classList.toggle('read-checkbox--read', nowRead);
+            readBtn.textContent = nowRead ? '✓ Read' : '○ Unread';
+            readBtn.title = nowRead ? 'Mark as unread' : 'Mark as read';
+            readBtn.setAttribute('aria-pressed', nowRead);
+            card.classList.toggle('paper-card--read', nowRead);
+            // If unread-only filter is active, re-render to hide newly read card
+            if (unreadOnly) renderCards();
+        });
+    }
+
+    return card;
+}
+
+// ── Display Limit Select ──────────────────────────────────────
+function setupDisplayLimit() {
+    const sel = document.getElementById('limit-select');
+    if (!sel) return;
+    sel.value = String(displayLimit);
+    sel.addEventListener('change', (e) => {
+        displayLimit = Number(e.target.value); // 0 means "all"
+        renderCards();
+    });
+}
+
+// ── Render Cards ──────────────────────────────────────────────
+function renderCards() {
+    const grid = document.getElementById('papers-grid');
+    if (!grid) return;
+
+    const papers = sortPapers(filterPapers());
+    grid.innerHTML = '';
+
+    if (!papers.length) {
+        grid.innerHTML = `
+      <div class="no-results">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <h3>No papers found</h3>
+        <p>Try adjusting your search or filters.</p>
+      </div>`;
+        return;
+    }
+
+    const visible = displayLimit > 0 ? papers.slice(0, displayLimit) : papers;
+    visible.forEach((paper, i) => grid.appendChild(buildCard(paper, i)));
+}
+
+// ── Helpers ───────────────────────────────────────────────────
 function formatAuthors(authors) {
-  return authors.length <= 3 ? authors.join(', ') : `${authors.slice(0, 3).join(', ')} 等`;
+    if (!authors || !authors.length) return '';
+    if (typeof authors === 'string') return authors;
+    if (Array.isArray(authors)) {
+        if (authors.length <= 3) return authors.join(', ');
+        return `${authors.slice(0, 3).join(', ')} et al.`;
+    }
+    return '';
 }
 
-function showLoading() {
-  const loading = document.createElement('div');
-  loading.className = 'no-results';
-  loading.textContent = '正在加载论文…';
-  elements['papers-grid'].replaceChildren(loading);
+function renderStars(rating) {
+    return Array.from({ length: 5 }, (_, i) =>
+        `<span class="star ${i < rating ? 'filled' : 'empty'}">${i < rating ? '★' : '☆'}</span>`
+    ).join('');
+}
+
+function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
 }

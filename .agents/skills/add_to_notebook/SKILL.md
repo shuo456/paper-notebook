@@ -13,7 +13,7 @@ Turn an explicit numbered selection into validated canonical records, preview th
 
 Require a user-confirmed numbered selection or an explicitly supplied single paper. If selection is missing or ambiguous, show the candidate menu and stop.
 
-Each record must contain the canonical fields used by `docs/js/papers.json`: `id`, `title`, `authors`, `venue`, `venueType`, `year`, `publishedDate`, `doi`, `url`, `pdfUrl`, `tags`, `rating`, `abstract`, `notes`, `addedDate`, `updatedDate`, `source`, `notebooklmUrl`, and `notebooklmNotes`.
+Each record must contain the canonical fields used by `docs/js/papers.json`: `id`, `title`, `authors`, `journal`, `year`, `publishedDate`, `doi`, `url`, `pdfUrl`, `tags`, `rating`, `abstract`, `notes`, `addedDate`, `updatedDate`, `source`, `notebooklm_url`, and `notebooklm_notes`.
 
 ## Workflow
 

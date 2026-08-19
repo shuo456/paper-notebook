@@ -13,9 +13,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-REQUIRED_FIELDS = ("id", "title", "authors", "venue", "year", "tags", "abstract", "addedDate", "source")
+REQUIRED_FIELDS = ("id", "title", "authors", "journal", "year", "tags", "abstract", "addedDate", "source")
 DATE_FIELDS = ("publishedDate", "addedDate", "updatedDate")
-URL_FIELDS = ("url", "pdfUrl", "notebooklmUrl")
+URL_FIELDS = ("url", "pdfUrl", "notebooklm_url")
 
 
 @dataclass(frozen=True)
@@ -73,7 +73,7 @@ def validate_paper(paper: dict) -> None:
         if field not in paper or paper[field] in (None, ""):
             errors.append(f"{field}: required")
 
-    for field in ("id", "title", "venue", "abstract", "source"):
+    for field in ("id", "title", "journal", "abstract", "source"):
         if field in paper and (not isinstance(paper[field], str) or not paper[field].strip()):
             errors.append(f"{field}: must be a non-empty string")
 
@@ -107,9 +107,12 @@ def paper_identity(paper: dict) -> tuple[str, str, str]:
     return str(paper.get("id", "")).strip(), normalize_doi(paper.get("doi", "")), normalize_title(paper.get("title", ""))
 
 
-def _canonical_candidate(paper: dict, today: str) -> dict:
+def normalize_paper(paper: dict, today: str) -> dict:
     value = dict(paper)
-    value.setdefault("venueType", "other")
+    if not value.get("journal"):
+        value["journal"] = value.get("venue", "")
+    value.pop("venue", None)
+    value.pop("venueType", None)
     value.setdefault("publishedDate", "")
     value["doi"] = normalize_doi(value.get("doi", ""))
     value.setdefault("url", "")
@@ -118,8 +121,12 @@ def _canonical_candidate(paper: dict, today: str) -> dict:
     value.setdefault("notes", "")
     value.setdefault("addedDate", today)
     value.setdefault("updatedDate", "")
-    value.setdefault("notebooklmUrl", "")
-    value.setdefault("notebooklmNotes", "")
+    if not value.get("notebooklm_url"):
+        value["notebooklm_url"] = value.get("notebooklmUrl", "")
+    if not value.get("notebooklm_notes"):
+        value["notebooklm_notes"] = value.get("notebooklmNotes", "")
+    value.pop("notebooklmUrl", None)
+    value.pop("notebooklmNotes", None)
     return value
 
 
@@ -146,7 +153,7 @@ def merge_papers(existing: list[dict], candidates: list[dict], today: str) -> Me
     added: list[dict] = []
     skipped: list[SkippedPaper] = []
     for raw in candidates:
-        item = _canonical_candidate(raw, today)
+        item = normalize_paper(raw, today)
         validate_paper(item)
         paper_id, doi, title = paper_identity(item)
         reason = "id" if paper_id in ids else "doi" if doi and doi in dois else "title" if title in titles else ""

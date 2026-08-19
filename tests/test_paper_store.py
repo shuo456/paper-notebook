@@ -6,24 +6,40 @@ import sys
 SCRIPTS = Path(__file__).parents[1] / ".agents" / "skills" / "add_to_notebook" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from paper_store import ValidationError, atomic_write_json, merge_papers, validate_paper
+from paper_store import ValidationError, atomic_write_json, merge_papers, normalize_paper, validate_paper
 
 
 def paper(**changes):
     value = {
         "id": "ames2024cbf", "title": "Control Barrier Functions",
-        "authors": ["A. Ames"], "venue": "IEEE TAC", "venueType": "journal",
+        "authors": ["A. Ames"], "journal": "IEEE TAC",
         "year": 2024, "publishedDate": "2024-01-01", "doi": "10.1109/tac.2024.1",
         "url": "https://example.org/paper", "pdfUrl": "https://example.org/paper.pdf",
         "tags": ["control barrier functions"], "rating": 5, "abstract": "Abstract",
         "notes": "", "addedDate": "2026-08-18", "updatedDate": "2026-08-18",
-        "source": "IEEE", "notebooklmUrl": "", "notebooklmNotes": "",
+        "source": "IEEE", "notebooklm_url": "", "notebooklm_notes": "",
     }
     value.update(changes)
     return value
 
 
 class PaperStoreTests(unittest.TestCase):
+    def test_normalize_paper_converts_input_aliases_to_upstream_schema(self):
+        normalized = normalize_paper(
+            paper(
+                journal=None,
+                venue="IEEE Transactions on Automatic Control",
+                notebooklmUrl="https://notebooklm.google.com/notebook/example",
+                notebooklmNotes="Deep notes",
+            ),
+            "2026-08-18",
+        )
+        self.assertEqual(normalized["journal"], "IEEE Transactions on Automatic Control")
+        self.assertEqual(normalized["notebooklm_url"], "https://notebooklm.google.com/notebook/example")
+        self.assertEqual(normalized["notebooklm_notes"], "Deep notes")
+        for legacy in ("venue", "venueType", "notebooklmUrl", "notebooklmNotes"):
+            self.assertNotIn(legacy, normalized)
+
     def test_validate_paper_rejects_wrong_types_dates_rating_and_non_https_urls(self):
         with self.assertRaises(ValidationError) as error:
             validate_paper(paper(authors="Ames", addedDate="18-08-2026", rating=6, url="http://example.org"))

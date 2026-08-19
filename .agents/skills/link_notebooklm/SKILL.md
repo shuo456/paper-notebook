@@ -15,7 +15,7 @@ Resolve one notebook, prepare Markdown for review, and update one paper only aft
 2. Locate the NotebookLM notebook using a user-provided ID or HTTPS URL. For title search, show candidate titles and require a confirmed title match before opening sources.
 3. Generate concise Markdown notes grounded in the notebook sources. Save them to a temporary Markdown file and show the complete text for review.
 4. Stop for user approval. Do not call the update script from an initial request alone.
-5. If the paper already has `notebooklmUrl` or `notebooklmNotes`, show the existing values and require a separate overwrite confirmation. Only that confirmation authorizes `--force`.
+5. If the paper already has `notebooklm_url` or `notebooklm_notes`, show the existing values and require a separate overwrite confirmation. Only that confirmation authorizes `--force`.
 6. After approval, run:
 
    `python .agents/skills/link_notebooklm/scripts/update_notebooklm.py --papers-json docs/js/papers.json --paper-id <id> --notebooklm-url <https-url> --notebooklm-notes <notes.md> --dry-run`

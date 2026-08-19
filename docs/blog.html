@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog | Shuo Xu's Paper Notebook</title>
+    <meta name="description"
+        content="Blog posts and thoughts by Shuo Xu on control barrier functions, safe control, robot learning, and reinforcement learning." />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/blog.css" />
+    <link rel="alternate" type="application/rss+xml" title="Shuo Xu's Blog RSS" href="feed.xml" />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✍️</text></svg>" />
+    <!-- Apply saved theme immediately to prevent flash -->
+    <script>
+        (function () { var t = localStorage.getItem('pn-theme') || 'light'; document.documentElement.setAttribute('data-theme', t); })();
+    </script>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="container navbar-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">📚</div>
+                <div>
+                    <span class="logo-text">Paper Notebook</span>
+                    <span class="logo-sub">Shuo Xu</span>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="blog.html" class="nav-active">Blog</a></li>
+                <li><a href="https://github.com/shuo456/paper-notebook" target="_blank">GitHub</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">
+                        <span class="toggle-icon">🌙</span>
+                        <span class="toggle-label">Dark</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="container">
+            <div class="hero-eyebrow">
+                ✍️ Thoughts · Tutorials · Research Notes
+            </div>
+            <h1>Blog</h1>
+            <p>Research notes on control barrier functions, safe control, robot learning, and reinforcement learning.</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container" style="padding-top:2rem;padding-bottom:4rem;">
+            <!-- BLOG_POSTS_START -->
+            <div class="no-results">
+                <h3>No posts yet</h3>
+                <p>New research notes will appear here.</p>
+            </div>
+            <!-- BLOG_POSTS_END -->
+
+            <!-- SUBSCRIBE SECTION -->
+            <section class="subscribe-section" id="subscribe">
+                <div class="subscribe-inner">
+                    <div class="subscribe-icon">📬</div>
+                    <h3 class="subscribe-title">Follow new posts</h3>
+                    <p class="subscribe-desc">New research notes will be available through the RSS feed.</p>
+                    <div class="subscribe-alt">
+                        <a href="feed.xml" class="rss-link" target="_blank" rel="noopener">RSS Feed</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                Maintained by <a href="https://github.com/shuo456" target="_blank">Shuo Xu</a> ·
+                Built with 💚 and plain HTML ·
+                <a href="https://github.com/shuo456/paper-notebook" target="_blank">View on GitHub</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/theme.js"></script>
+
+</body>
+
+</html>
