@@ -11,3 +11,21 @@
 
 # Logs
 *.log
+
+# Python and local data backups
+__pycache__/
+*.py[cod]
+*.pyc
+*.json.bak
+node_modules/
+
+# Local secrets and MCP state
+.env
+.env.*
+!.env.example
+.mcp.json
+mcp_config.json
+*.cookies.json
+
+# Local Git worktrees
+.worktrees/

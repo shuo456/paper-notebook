@@ -1,163 +1,48 @@
 #!/usr/bin/env python3
-"""
-append_papers.py — Safely append new paper entries to papers.json.
-
-Usage:
-    python3 append_papers.py --papers-json docs/js/papers.json --new-entries /tmp/new_papers.json
-
-The new-entries file should contain a JSON array of paper objects matching
-the papers.json schema. Existing entries are deduplicated by 'id'.
-"""
+"""Append validated, deduplicated paper records to papers.json."""
 
 import argparse
-import json
 import sys
 from datetime import date
 from pathlib import Path
 
-
-REQUIRED_FIELDS = {"id", "title", "authors", "journal", "year", "abstract"}
-
-KNOWN_JOURNALS = {
-    "Nature Plants", "Nature Genetics", "Nature Methods",
-    "Nature Biotechnology", "Nature", "Cell", "Cell Genomics",
-    "Genome Biology", "PNAS", "bioRxiv", "MBE", "arXiv",
-}
-
-TAG_ALIASES = {
-    "maize": ["maize"],
-    "foundation model": ["machine learning", "foundation model"],
-    "llm agents": ["machine learning", "LLM agents"],
-    "deep learning": ["machine learning", "deep learning"],
-    "artificial intelligence": ["machine learning"],
-    "ai agents": ["machine learning", "AI agents"],
-    "ai design": ["machine learning", "AI design"]
-}
+from paper_store import ValidationError, atomic_write_json, load_json_array, merge_papers
 
 
-def load_json(path: Path) -> list:
-    if not path.exists():
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if not isinstance(data, list):
-        raise ValueError(f"{path} must contain a JSON array at the top level.")
-    return data
-
-
-def validate_entry(entry: dict) -> list[str]:
-    """Return a list of validation warnings (not hard errors)."""
-    warnings = []
-    for field in REQUIRED_FIELDS:
-        if not entry.get(field):
-            warnings.append(f"  ⚠  Missing required field: '{field}'")
-    if entry.get("journal") and entry["journal"] not in KNOWN_JOURNALS:
-        warnings.append(
-            f"  ⚠  Unknown journal '{entry['journal']}' — badge will be gray. "
-            f"Known: {', '.join(sorted(KNOWN_JOURNALS))}"
-        )
-    return warnings
-
-
-def build_defaults(entry: dict) -> dict:
-    """Fill in optional fields with sensible defaults."""
-    today = date.today().isoformat()
-    entry.setdefault("doi", "")
-    
-    raw_tags = entry.get("tags", [])
-    normalized_tags = []
-    for tag in raw_tags:
-        lower_tag = tag.lower()
-        if lower_tag in TAG_ALIASES:
-            normalized_tags.extend(TAG_ALIASES[lower_tag])
-        else:
-            normalized_tags.append(tag)
-
-    seen = set()
-    deduped_tags = []
-    for t in normalized_tags:
-        if t.lower() not in seen:
-            deduped_tags.append(t)
-            seen.add(t.lower())
-    entry["tags"] = deduped_tags
-
-    entry.setdefault("rating", 3)
-    entry.setdefault("notes", "")
-    entry.setdefault("addedDate", today)
-    entry.setdefault("source", entry.get("journal", ""))
-    return entry
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Append papers to papers.json")
-    parser.add_argument(
-        "--papers-json", required=True, type=Path,
-        help="Path to the existing papers.json file"
-    )
-    parser.add_argument(
-        "--new-entries", required=True, type=Path,
-        help="Path to a JSON file containing an array of new paper objects"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Show what would happen without writing anything"
-    )
+def main() -> int:
+    parser = argparse.ArgumentParser(description="向 papers.json 安全添加论文")
+    parser.add_argument("--papers-json", required=True, type=Path, help="现有 papers.json 路径")
+    parser.add_argument("--new-entries", required=True, type=Path, help="包含候选论文数组的 JSON 文件")
+    parser.add_argument("--date", default=date.today().isoformat(), help="新增日期，格式 YYYY-MM-DD")
+    parser.add_argument("--dry-run", action="store_true", help="仅显示结果，不写文件")
     args = parser.parse_args()
 
-    # Load existing papers
-    existing = load_json(args.papers_json)
-    existing_ids = {p["id"] for p in existing if "id" in p}
+    try:
+        existing = load_json_array(args.papers_json)
+        candidates = load_json_array(args.new_entries)
+        result = merge_papers(existing, candidates, args.date)
+    except (OSError, ValueError, ValidationError) as error:
+        print(f"错误：{error}", file=sys.stderr)
+        return 1
 
-    # Load new entries
-    new_entries = load_json(args.new_entries)
-    if not new_entries:
-        print("No new entries provided. Nothing to do.")
-        sys.exit(0)
+    for item in result.skipped:
+        print(f"跳过 {item.paper_id}：重复 {item.reason}")
+    for item in result.added:
+        print(f"待添加 {item['id']}：{item['title']}")
 
-    added = []
-    skipped_dup = []
-    skipped_invalid = []
+    mode = "试运行" if args.dry_run else "执行"
+    print(f"{mode}汇总：新增 {len(result.added)} 篇，跳过 {len(result.skipped)} 篇，总计 {len(result.papers)} 篇。")
+    if args.dry_run or not result.added:
+        return 0
 
-    for entry in new_entries:
-        paper_id = entry.get("id", "<no-id>")
-
-        # Deduplication
-        if paper_id in existing_ids:
-            skipped_dup.append(paper_id)
-            print(f"⏭  Skipped (duplicate id): {paper_id}")
-            continue
-
-        # Validation warnings
-        warnings = validate_entry(entry)
-        for w in warnings:
-            print(w)
-
-        # Fill defaults
-        entry = build_defaults(entry)
-        added.append(entry)
-        existing_ids.add(paper_id)
-        print(f"✅ Queued: {paper_id} — {entry.get('title', '')[:60]}")
-
-    if not added:
-        print(f"\nResult: 0 added, {len(skipped_dup)} duplicate(s), {len(skipped_invalid)} invalid.")
-        sys.exit(0)
-
-    if args.dry_run:
-        print(f"\n[dry-run] Would add {len(added)} paper(s). Not writing.")
-        sys.exit(0)
-
-    # Write back
-    updated = existing + added
-    with open(args.papers_json, "w", encoding="utf-8") as f:
-        json.dump(updated, f, indent=2, ensure_ascii=False)
-        f.write("\n")  # trailing newline
-
-    print(
-        f"\n📚 Done: {len(added)} added, "
-        f"{len(skipped_dup)} duplicate(s) skipped. "
-        f"Total papers: {len(updated)}"
-    )
+    try:
+        atomic_write_json(args.papers_json, result.papers)
+    except (OSError, ValidationError) as error:
+        print(f"写入失败：{error}", file=sys.stderr)
+        return 1
+    print(f"已更新 {args.papers_json}；原文件备份为 {args.papers_json.name}.bak。")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

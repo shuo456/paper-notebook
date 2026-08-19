@@ -1,107 +1,78 @@
 #!/usr/bin/env python3
-"""
-update_notebooklm.py — Link a NotebookLM notebook to an existing paper in papers.json.
-
-Usage:
-    python3 update_notebooklm.py \\
-        --papers-json docs/js/papers.json \\
-        --paper-id zhou2024maize \\
-        --notebooklm-url "https://notebooklm.google.com/notebook/abc-xyz" \\
-        --notebooklm-notes /tmp/nlm_notes.md
-"""
+"""Attach canonical NotebookLM notes and URL to one paper record."""
 
 import argparse
-import json
 import sys
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlparse
+
+STORE_SCRIPTS = Path(__file__).parents[2] / "add_to_notebook" / "scripts"
+sys.path.insert(0, str(STORE_SCRIPTS))
+
+from paper_store import ValidationError, atomic_write_json, load_json_array, validate_paper
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Update a paper entry in papers.json with NotebookLM notes"
-    )
-    parser.add_argument(
-        "--papers-json", required=True, type=Path,
-        help="Path to papers.json"
-    )
-    parser.add_argument(
-        "--paper-id", required=True,
-        help="The paper ID to update (e.g. zhou2024maize)"
-    )
-    parser.add_argument(
-        "--notebooklm-url", required=True,
-        help="Full URL to the NotebookLM notebook"
-    )
-    parser.add_argument(
-        "--notebooklm-notes", required=True, type=Path,
-        help="Path to a markdown file containing the notes extracted from NotebookLM"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true",
-        help="Show what would happen without writing anything"
-    )
+def is_https_url(value: str) -> bool:
+    parsed = urlparse(value)
+    return parsed.scheme == "https" and bool(parsed.netloc)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="为论文关联 NotebookLM 深度笔记")
+    parser.add_argument("--papers-json", required=True, type=Path)
+    parser.add_argument("--paper-id", required=True)
+    parser.add_argument("--notebooklm-url", dest="notebooklm_url", required=True)
+    parser.add_argument("--notebooklm-notes", dest="notebooklm_notes", required=True, type=Path)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", action="store_true", help="覆盖已有 NotebookLM 数据")
     args = parser.parse_args()
 
-    # Load papers.json
-    if not args.papers_json.exists():
-        print(f"❌ papers.json not found at: {args.papers_json}", file=sys.stderr)
-        sys.exit(1)
+    if not is_https_url(args.notebooklm_url):
+        print("错误：NotebookLM URL 必须是 HTTPS 地址。", file=sys.stderr)
+        return 1
+    try:
+        papers = load_json_array(args.papers_json)
+        notes = args.notebooklm_notes.read_text(encoding="utf-8").strip()
+    except (OSError, ValueError, ValidationError) as error:
+        print(f"错误：{error}", file=sys.stderr)
+        return 1
+    if not notes:
+        print("错误：NotebookLM 笔记文件为空。", file=sys.stderr)
+        return 1
 
-    with open(args.papers_json, "r", encoding="utf-8") as f:
-        papers = json.load(f)
-
-    if not isinstance(papers, list):
-        print("❌ papers.json must contain a JSON array.", file=sys.stderr)
-        sys.exit(1)
-
-    # Find the target paper
-    target = next((p for p in papers if p.get("id") == args.paper_id), None)
+    target = next((paper for paper in papers if paper.get("id") == args.paper_id), None)
     if target is None:
-        print(f"❌ No paper found with id '{args.paper_id}'", file=sys.stderr)
-        print(f"   Available IDs: {[p.get('id') for p in papers]}")
-        sys.exit(1)
+        print(f"错误：未找到论文 {args.paper_id}。", file=sys.stderr)
+        return 1
+    if (target.get("notebooklm_url") or target.get("notebooklm_notes")) and not args.force:
+        print("错误：该论文已有 NotebookLM 数据；如需覆盖，请添加 --force。", file=sys.stderr)
+        return 1
 
-    # Load notes markdown
-    if not args.notebooklm_notes.exists():
-        print(f"❌ Notes file not found at: {args.notebooklm_notes}", file=sys.stderr)
-        sys.exit(1)
+    updated = [dict(paper) for paper in papers]
+    updated_target = next(paper for paper in updated if paper.get("id") == args.paper_id)
+    updated_target["notebooklm_url"] = args.notebooklm_url
+    updated_target["notebooklm_notes"] = notes
+    updated_target["updatedDate"] = date.today().isoformat()
+    try:
+        for paper in updated:
+            validate_paper(paper)
+    except ValidationError as error:
+        print(f"验证失败：{error}", file=sys.stderr)
+        return 1
 
-    notes_text = args.notebooklm_notes.read_text(encoding="utf-8").strip()
-    if not notes_text:
-        print("❌ Notes file is empty.", file=sys.stderr)
-        sys.exit(1)
-
-    # Check if already linked
-    already_has_url = target.get("notebooklm_url")
-    already_has_notes = target.get("notebooklm_notes")
-
-    if already_has_url or already_has_notes:
-        print(f"⚠  Paper '{args.paper_id}' already has NotebookLM data.")
-        print(f"   Existing URL: {already_has_url or '(none)'}")
-        print(f"   Overwriting...")
-
-    # Apply updates
-    target["notebooklm_url"] = args.notebooklm_url
-    target["notebooklm_notes"] = notes_text
-    target["updatedDate"] = date.today().isoformat()   # bubble to top on sort
-
+    print(f"将更新 {args.paper_id}：NotebookLM 笔记 {len(notes)} 个字符。")
     if args.dry_run:
-        print(f"\n[dry-run] Would update '{args.paper_id}' with:")
-        print(f"  notebooklm_url: {args.notebooklm_url}")
-        print(f"  notebooklm_notes: ({len(notes_text)} chars)\n")
-        print(notes_text[:300] + ("..." if len(notes_text) > 300 else ""))
-        sys.exit(0)
-
-    # Write back
-    with open(args.papers_json, "w", encoding="utf-8") as f:
-        json.dump(papers, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-
-    print(f"\n✅ Updated '{args.paper_id}' with NotebookLM notes.")
-    print(f"   URL: {args.notebooklm_url}")
-    print(f"   Notes preview: {notes_text[:120]}{'...' if len(notes_text) > 120 else ''}")
+        print("试运行完成，未写入文件。")
+        return 0
+    try:
+        atomic_write_json(args.papers_json, updated)
+    except (OSError, ValidationError) as error:
+        print(f"写入失败：{error}", file=sys.stderr)
+        return 1
+    print(f"已更新 {args.papers_json}。")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

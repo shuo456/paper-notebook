@@ -1,0 +1,4 @@
+interface:
+  display_name: "添加论文到笔记库"
+  short_description: "把已确认论文安全写入 papers.json 并完成本地验证"
+  default_prompt: "Use $add-to-notebook to add my selected papers safely."

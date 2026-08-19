@@ -1,0 +1,4 @@
+interface:
+  display_name: "发现 arXiv 论文"
+  short_description: "从 arXiv 筛选安全控制、机器人学习与强化学习领域最新论文"
+  default_prompt: "Use $discover-arxiv to find recent arXiv papers relevant to my research."

@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function getBasePath() {
-    if (window.location.hostname === 'zhaijj.github.io') return '/paper-notebook';
+    if (window.location.hostname === 'shuo456.github.io') return '/paper-notebook';
     const path = window.location.pathname;
     if (path.includes('/docs/')) return path.substring(0, path.indexOf('/docs/') + 5);
     return '.';
@@ -103,7 +103,7 @@ function renderPaper(paper, base) {
     const accent = JOURNAL_ACCENTS[slug] || JOURNAL_ACCENTS.default;
 
     // Page title
-    document.title = `${paper.title} | Jingjing's Paper Notebook`;
+    document.title = `${paper.title} | Shuo Xu's Paper Notebook`;
 
     // Accent CSS var
     document.documentElement.style.setProperty('--accent', accent);
@@ -236,7 +236,7 @@ function initUtterances() {
     // Create script element
     const script = document.createElement('script');
     script.src = 'https://utteranc.es/client.js';
-    script.setAttribute('repo', 'zhaijj/paper-notebook');
+    script.setAttribute('repo', 'shuo456/paper-notebook');
     script.setAttribute('issue-term', 'title');
     script.setAttribute('label', 'comment');
     script.setAttribute('theme', utterancesTheme);
