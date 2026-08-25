@@ -32,7 +32,9 @@ def main() -> int:
 
     mode = "试运行" if args.dry_run else "执行"
     print(f"{mode}汇总：新增 {len(result.added)} 篇，跳过 {len(result.skipped)} 篇，总计 {len(result.papers)} 篇。")
-    if args.dry_run or not result.added:
+    if args.dry_run:
+        return 0
+    if not result.added and result.papers == existing:
         return 0
 
     try:

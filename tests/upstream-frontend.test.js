@@ -22,11 +22,14 @@ test('upstream home controls remain wired', () => {
   }
 });
 
-test('paper data has exactly three upstream-compatible records', () => {
+test('paper data has eighteen upstream-compatible records with detailed notes for new papers', () => {
   const papers = JSON.parse(read('docs/js/papers.json'));
-  assert.equal(papers.length, 3);
-  assert.deepEqual(papers.map((paper) => paper.id), [
-    'ames2017cbf', 'berkenkamp2017safe', 'haarnoja2018sac',
+  assert.equal(papers.length, 18);
+  const expectedNewIds = new Set([
+    'arxiv2608.19366', 'arxiv2608.19537', 'arxiv2608.19729',
+    'arxiv2608.19836', 'arxiv2608.20275', 'arxiv2608.20467',
+    'arxiv2608.20556', 'arxiv2608.20906', 'arxiv2608.21175',
+    'arxiv2608.21204',
   ]);
   for (const paper of papers) {
     assert.equal(typeof paper.journal, 'string');
@@ -34,7 +37,14 @@ test('paper data has exactly three upstream-compatible records', () => {
     assert.equal(typeof paper.notebooklm_notes, 'string');
     assert.equal('venue' in paper, false);
     assert.equal('notebooklmUrl' in paper, false);
+    if (expectedNewIds.has(paper.id)) {
+      for (const heading of ['核心问题', '核心方法', '主要结果', '局限性', '阅读建议']) {
+        assert.match(paper.notes, new RegExp(heading), `${paper.id}: ${heading}`);
+      }
+      expectedNewIds.delete(paper.id);
+    }
   }
+  assert.deepEqual([...expectedNewIds], []);
 });
 
 test('personal blog starts empty without original account integrations', () => {

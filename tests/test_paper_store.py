@@ -1,4 +1,5 @@
 import json
+import subprocess
 import unittest
 from pathlib import Path
 import sys
@@ -58,6 +59,45 @@ class PaperStoreTests(unittest.TestCase):
         result = merge_papers(existing, candidates, "2026-08-18")
         self.assertEqual(result.added, [])
         self.assertEqual([item.reason for item in result.skipped], ["doi", "title"])
+
+    def test_append_script_normalizes_existing_records_without_new_papers(self):
+        legacy = paper()
+        for key in ("publishedDate", "pdfUrl", "updatedDate", "notebooklm_url", "notebooklm_notes"):
+            legacy.pop(key)
+
+        directory = Path(__file__).parent / "_append_fixture"
+        directory.mkdir(exist_ok=True)
+        papers_path = directory / "papers.json"
+        candidates_path = directory / "candidates.json"
+        backup_path = papers_path.with_suffix(".json.bak")
+        try:
+            papers_path.write_text(json.dumps([legacy]), encoding="utf-8")
+            candidates_path.write_text("[]", encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "append_papers.py"),
+                    "--papers-json", str(papers_path),
+                    "--new-entries", str(candidates_path),
+                    "--date", "2026-08-25",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            normalized = json.loads(papers_path.read_text(encoding="utf-8"))[0]
+            for key in ("publishedDate", "pdfUrl", "updatedDate", "notebooklm_url", "notebooklm_notes"):
+                self.assertIn(key, normalized)
+        finally:
+            papers_path.unlink(missing_ok=True)
+            candidates_path.unlink(missing_ok=True)
+            backup_path.unlink(missing_ok=True)
+            directory.rmdir()
 
     def test_atomic_write_keeps_valid_json_and_creates_a_backup(self):
         directory = Path(__file__).parent / "_paper_store_fixture"

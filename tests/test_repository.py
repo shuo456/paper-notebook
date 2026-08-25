@@ -52,13 +52,25 @@ class RepositoryContractTests(unittest.TestCase):
 
     def test_papers_use_upstream_frontend_schema(self):
         papers = json.loads((ROOT / "docs/js/papers.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(papers), 3)
+        self.assertEqual(len(papers), 18)
+        expected_new_ids = {
+            "arxiv2608.19366", "arxiv2608.19537", "arxiv2608.19729",
+            "arxiv2608.19836", "arxiv2608.20275", "arxiv2608.20467",
+            "arxiv2608.20556", "arxiv2608.20906", "arxiv2608.21175",
+            "arxiv2608.21204",
+        }
+        by_id = {paper["id"]: paper for paper in papers}
+        self.assertTrue(expected_new_ids <= by_id.keys())
         for paper in papers:
             self.assertIn("journal", paper)
             self.assertIn("notebooklm_url", paper)
             self.assertIn("notebooklm_notes", paper)
             self.assertNotIn("venue", paper)
             self.assertNotIn("notebooklmUrl", paper)
+        for paper_id in expected_new_ids:
+            paper = by_id[paper_id]
+            for heading in ("核心问题", "核心方法", "主要结果", "局限性", "阅读建议"):
+                self.assertIn(heading, paper["notes"], f"{paper_id}: {heading}")
 
     def test_long_journal_names_stay_inside_cards(self):
         css = (ROOT / "docs/css/style.css").read_text(encoding="utf-8")

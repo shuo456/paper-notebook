@@ -136,7 +136,7 @@ def merge_papers(existing: list[dict], candidates: list[dict], today: str) -> Me
     if not isinstance(existing, list) or not isinstance(candidates, list):
         raise ValidationError("existing and candidates must be arrays")
 
-    current = [dict(item) for item in existing]
+    current = [normalize_paper(item, today) for item in existing]
     for item in current:
         validate_paper(item)
 
